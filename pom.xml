@@ -71,6 +71,10 @@
 			<artifactId>hutool-core</artifactId>
 			<version>4.1.9</version>
 		</dependency>
+		<dependency>
+			<groupId>net.sf.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+		</dependency>
 
 
 	</dependencies>

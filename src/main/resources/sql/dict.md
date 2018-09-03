@@ -6,12 +6,12 @@ sample
 
 cols
 ===
-	REVISION,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME,DELETE_TIME,DELETE_BY,ID,DICT_NAME,DICT_CODE,DICT_ITEM_NAME,DICT_ITEM_CODE,DICT_ITEM_VAL
+	REVISION,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME,DELETE_TIME,DELETE_BY,ID,DICT_NAME,DICT_CODE
 
 updateSample
 ===
 	
-	REVISION=#revision#,CREATED_BY=#createdBy#,CREATED_TIME=#createdTime#,UPDATED_BY=#updatedBy#,UPDATED_TIME=#updatedTime#,DELETE_TIME=#deleteTime#,DELETE_BY=#deleteBy#,ID=#id#,DICT_NAME=#dictName#,DICT_CODE=#dictCode#,DICT_ITEM_NAME=#dictItemName#,DICT_ITEM_CODE=#dictItemCode#,DICT_ITEM_VAL=#dictItemVal#
+	REVISION=#revision#,CREATED_BY=#createdBy#,CREATED_TIME=#createdTime#,UPDATED_BY=#updatedBy#,UPDATED_TIME=#updatedTime#,DELETE_TIME=#deleteTime#,DELETE_BY=#deleteBy#,ID=#id#,DICT_NAME=#dictName#,DICT_CODE=#dictCode#
 
 condition
 ===
@@ -46,15 +46,6 @@ condition
 	@}
 	@if(!isEmpty(dictCode)){
 	 and DICT_CODE=#dictCode#
-	@}
-	@if(!isEmpty(dictItemName)){
-	 and DICT_ITEM_NAME=#dictItemName#
-	@}
-	@if(!isEmpty(dictItemCode)){
-	 and DICT_ITEM_CODE=#dictItemCode#
-	@}
-	@if(!isEmpty(dictItemVal)){
-	 and DICT_ITEM_VAL=#dictItemVal#
 	@}
 	
 	

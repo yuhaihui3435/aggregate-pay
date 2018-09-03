@@ -2,8 +2,6 @@ package com.xtf.aggregatepay.entity;
 import java.math.*;
 import java.util.Date;
 import java.sql.Timestamp;
-
-import org.beetl.sql.core.annotatoin.AutoID;
 import org.beetl.sql.core.annotatoin.Table;
 
 
@@ -17,7 +15,6 @@ public class Dict extends com.xtf.aggregatepay.core.BaseEntity  {
 	/*
 	ID
 	*/
-	@AutoID
 	private Integer id ;
 	/*
 	乐观锁
@@ -35,18 +32,6 @@ public class Dict extends com.xtf.aggregatepay.core.BaseEntity  {
 	字典编号
 	*/
 	private String dictCode ;
-	/*
-	字典条目编号
-	*/
-	private String dictItemCode ;
-	/*
-	字典条目名
-	*/
-	private String dictItemName ;
-	/*
-	字典条目值
-	*/
-	private String dictItemVal ;
 	/*
 	字典名
 	*/
@@ -144,51 +129,6 @@ public class Dict extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	public void setDictCode(String dictCode ){
 		this.dictCode = dictCode;
-	}
-	
-	/**
-	* 字典条目编号
-	*@return 
-	*/
-	public String getDictItemCode(){
-		return  dictItemCode;
-	}
-	/**
-	* 字典条目编号
-	*@param  dictItemCode
-	*/
-	public void setDictItemCode(String dictItemCode ){
-		this.dictItemCode = dictItemCode;
-	}
-	
-	/**
-	* 字典条目名
-	*@return 
-	*/
-	public String getDictItemName(){
-		return  dictItemName;
-	}
-	/**
-	* 字典条目名
-	*@param  dictItemName
-	*/
-	public void setDictItemName(String dictItemName ){
-		this.dictItemName = dictItemName;
-	}
-	
-	/**
-	* 字典条目值
-	*@return 
-	*/
-	public String getDictItemVal(){
-		return  dictItemVal;
-	}
-	/**
-	* 字典条目值
-	*@param  dictItemVal
-	*/
-	public void setDictItemVal(String dictItemVal ){
-		this.dictItemVal = dictItemVal;
 	}
 	
 	/**
