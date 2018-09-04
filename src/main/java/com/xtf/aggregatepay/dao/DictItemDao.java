@@ -1,11 +1,9 @@
 package com.xtf.aggregatepay.dao;
 
 import com.xtf.aggregatepay.core.BaseDao;
-import com.xtf.aggregatepay.entity.Dict;
-import org.beetl.sql.core.mapper.BaseMapper;
+import com.xtf.aggregatepay.entity.DictItem;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface DictDao extends BaseDao<Dict> {
-
+public interface DictItemDao extends BaseDao<DictItem> {
 }

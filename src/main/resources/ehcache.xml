@@ -2,9 +2,9 @@
 <ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
          updateCheck="false">
-    <diskStore path = "Java.io.tmpdir"/>
+    <diskStore path = "user.dir/cache"/>
     <cache
-            name="dict"
+            name="Dict"
             eternal="true"
             maxElementsInMemory="200"
             overflowToDisk="true"

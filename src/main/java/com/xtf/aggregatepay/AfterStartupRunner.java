@@ -4,6 +4,7 @@ import com.xtf.aggregatepay.entity.Dict;
 import com.xtf.aggregatepay.entity.DictItem;
 import com.xtf.aggregatepay.service.DictItemService;
 import com.xtf.aggregatepay.service.DictService;
+import com.xtf.aggregatepay.util.EhcacheUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -35,19 +36,16 @@ public class AfterStartupRunner implements ApplicationRunner
     private EhCacheCacheManager ehCacheCacheManager;
     @Autowired
     private DictService dictService;
-    @Autowired
-    private DictItemService dictItemService;
+
 
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-
+        allAddInCache();
     }
 
-
-    private void addInCache(){
-        List<Dict> dictList=dictService.all();
-        Cache cache=ehCacheCacheManager.getCache(Dict.class.getSimpleName());
-        dictList.stream().forEach(dict -> cache.put(dict.getDictCode(),dictItemService.findByDictId(dict.getId())));
+    private void allAddInCache(){
+        dictService.dictCache();
     }
+
 }

@@ -1,5 +1,7 @@
 package com.xtf.aggregatepay.core;
 
+import org.springframework.stereotype.Controller;
+
 /**
  * 简介
  * <p>
@@ -14,5 +16,8 @@ package com.xtf.aggregatepay.core;
  * 修改备注:  []
  * 版本:     [v1.0]
  */
+@Controller
 public class BaseController {
+
+
 }
