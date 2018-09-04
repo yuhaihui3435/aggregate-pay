@@ -1,9 +1,7 @@
 package com.xtf.aggregatepay.handler;
 
-import cn.hutool.core.util.StrUtil;
 import com.xtf.aggregatepay.core.LogicException;
 import com.xtf.aggregatepay.dto.ApiResp;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;

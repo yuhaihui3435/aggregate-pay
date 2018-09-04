@@ -3,6 +3,10 @@ import java.math.*;
 import java.util.Date;
 import java.sql.Timestamp;
 import org.beetl.sql.core.annotatoin.Table;
+import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 
 /* 
@@ -19,6 +23,7 @@ public class MerBankInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	/*
 	ID
 	*/
+	@NotNull(message = "商户ID不能为空")
 	private Integer merId ;
 	/*
 	乐观锁
@@ -27,30 +32,40 @@ public class MerBankInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	/*
 	开户人姓名
 	*/
+	@NotBlank(message = "开户人姓名必填")
+	@Length(message = "开户人姓名由1-100个字组成",max = 100,min = 1)
 	private String accName ;
 	/*
 	开户账号
 	*/
+	@NotBlank(message = "开户账号必填")
+	@Length(message = "开户人姓名由1-32个字组成",max = 32,min = 1)
 	private String accNum ;
 	/*
 	银行账户类型-TO_PRIVATE:对私,TO_PUBLIC:对公
 	*/
+	@NotBlank(message = "银行账户类型必填")
 	private String accType ;
 	/*
 	开户行所在市
 	*/
+	@NotBlank(message = "开户行所在市编号必填")
 	private String bankCityCode ;
 	/*
 	银行编码
 	*/
+	@NotBlank(message = "银行编码必填")
 	private String bankCode ;
 	/*
 	开户行网点支行名
 	*/
+	@NotBlank(message = "开户行网点支行名必填")
+	@Length(message = "开户行网点支行名由1-100个字组成",max = 100,min = 1)
 	private String bankNameBranch ;
 	/*
 	开户行所在省
 	*/
+	@NotBlank(message = "开户行所在省编号必填")
 	private String bankProvCode ;
 	/*
 	银行卡类型-0:借记卡
@@ -67,14 +82,20 @@ public class MerBankInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	/*
 	开户身份证号
 	*/
+	@NotBlank(message = "开户身份证必填")
+	@Length(message = "开户身份证由15-18个字组成",max = 18,min = 15)
 	private String idCardNum ;
 	/*
 	身份证有效期
 	*/
+	@NotBlank(message = "身份证有效期必填")
+	@Length(message = "身份证有效期长度为10，YYYY-MM-DD格式",max = 11,min = 9)
 	private String idCardValidityPeroid ;
 	/*
 	银行预留手机号
 	*/
+	@NotBlank(message = "银行预留手机号必填")
+	@Length(message = "银行预留手机号长度为11",max = 11,min = 9)
 	private String phone ;
 	/*
 	更新人

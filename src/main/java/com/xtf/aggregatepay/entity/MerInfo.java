@@ -53,7 +53,7 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	营业执照有效期结束日期
 	*/
 	@NotBlank(message = "营业执照有效期必填")
-	@Length(message = "营业执照有效期长度不能超过10个字",max = 10,min = 1)
+	@Length(message = "营业执照有效期长度为10，格式为YYYY-MM-DD",max = 11,min = 9)
 	private String busLicenseValidityPeroid ;
 	/*
 	渠道编号
@@ -100,19 +100,19 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	身份证有效期结束日期
 	*/
 	@NotBlank(message = "身份证有效期结束日期必填")
-	@Length(message = "身份证有效期结束日期长度不能超过10个字",max = 10,min = 1)
+	@Length(message = "身份证有效期结束日期长度为10，YYYY-MM-DD格式",max = 11,min = 9)
 	private String legalIdCardValidityPeroid ;
 	/*
 	法人
 	*/
 	@NotBlank(message = "法人必填")
-	@Length(message = "商户名称由1-32个字组成",max = 32,min = 1)
+	@Length(message = "法人由1-32个字组成",max = 32,min = 1)
 	private String legalPerson ;
 	/*
 	法人手机号
 	*/
 	@NotBlank(message = "法人手机号必填")
-	@Length(message = "手机号由11个数字组成",max = 11,min = 11)
+	@Length(message = "手机号由11个数字组成",max = 12,min = 10)
 	private String legalPhone ;
 	/*
 	联系人
@@ -124,7 +124,7 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	联系人电话
 	*/
 	@NotBlank(message = "联系人手机号必填")
-	@Length(message = "联系人手机号由11个数字组成",max = 11,min = 11)
+	@Length(message = "联系人手机号由11个数字组成",max = 12,min = 10)
 	private String linkPhone ;
 	/*
 	商户名
