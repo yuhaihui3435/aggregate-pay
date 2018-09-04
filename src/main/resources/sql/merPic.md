@@ -6,12 +6,12 @@ sample
 
 cols
 ===
-	REVISION,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME,DELETE_TIME,DELETE_BY,ID,AP_CODE,PIC_ID,PIC_PATH,PIC_TYPE
+	REVISION,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME,DELETE_TIME,DELETE_BY,ID,MER_ID,PIC_ID,PIC_PATH,PIC_TYPE
 
 updateSample
 ===
 	
-	REVISION=#revision#,CREATED_BY=#createdBy#,CREATED_TIME=#createdTime#,UPDATED_BY=#updatedBy#,UPDATED_TIME=#updatedTime#,DELETE_TIME=#deleteTime#,DELETE_BY=#deleteBy#,ID=#id#,AP_CODE=#apCode#,PIC_ID=#picId#,PIC_PATH=#picPath#,PIC_TYPE=#picType#
+	REVISION=#revision#,CREATED_BY=#createdBy#,CREATED_TIME=#createdTime#,UPDATED_BY=#updatedBy#,UPDATED_TIME=#updatedTime#,DELETE_TIME=#deleteTime#,DELETE_BY=#deleteBy#,ID=#id#,MER_ID=#merId#,PIC_ID=#picId#,PIC_PATH=#picPath#,PIC_TYPE=#picType#
 
 condition
 ===
@@ -41,8 +41,8 @@ condition
 	@if(!isEmpty(id)){
 	 and ID=#id#
 	@}
-	@if(!isEmpty(apCode)){
-	 and AP_CODE=#apCode#
+	@if(!isEmpty(merId)){
+	 and MER_ID=#merId#
 	@}
 	@if(!isEmpty(picId)){
 	 and PIC_ID=#picId#

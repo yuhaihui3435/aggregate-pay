@@ -17,9 +17,9 @@ public class MerPic extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	private Integer id ;
 	/*
-	本系统编号
+	商户ID
 	*/
-	private Integer apCode ;
+	private Integer merId ;
 	/*
 	图片类型-0:营业执照,1:手持身份证,2:银行卡图片,3:身份证正面,4:身份证背面,5:非法人结算授权书,6:商户协议照片,7:门头照,8:组织机构代码照
 	*/
@@ -80,18 +80,18 @@ public class MerPic extends com.xtf.aggregatepay.core.BaseEntity  {
 	}
 	
 	/**
-	* 本系统编号
+	* 商户ID
 	*@return 
 	*/
-	public Integer getApCode(){
-		return  apCode;
+	public Integer getMerId(){
+		return  merId;
 	}
 	/**
-	* 本系统编号
-	*@param  apCode
+	* 商户ID
+	*@param  merId
 	*/
-	public void setApCode(Integer apCode ){
-		this.apCode = apCode;
+	public void setMerId(Integer merId ){
+		this.merId = merId;
 	}
 	
 	/**

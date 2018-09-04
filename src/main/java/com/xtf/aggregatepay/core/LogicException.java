@@ -1,7 +1,10 @@
 package com.xtf.aggregatepay.core;
 
+import cn.hutool.core.util.StrUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.text.Format;
 
 public class LogicException extends RuntimeException {
 
@@ -30,5 +33,9 @@ public class LogicException extends RuntimeException {
         this.errCode="999999";
         this.errMsg=errMsg;
         logger.error("系统遇到如下异常，异常码：{}>>>异常信息：{}", errCode, errMsg);
+    }
+
+    public String getPrettyExceptionMsg(){
+        return String.format("业务异常:编号>>【%s】,信息>>【%s】",this.errCode,this.errMsg);
     }
 }

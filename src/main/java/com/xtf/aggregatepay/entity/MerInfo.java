@@ -3,6 +3,9 @@ import java.math.*;
 import java.util.Date;
 import java.sql.Timestamp;
 import org.beetl.sql.core.annotatoin.Table;
+import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotBlank;
 
 
 /* 
@@ -17,80 +20,50 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	private Integer id ;
 	/*
-	渠道ID
-	*/
-	private Integer channelId ;
-	/*
 	乐观锁
 	*/
 	private Integer revision ;
 	/*
-	开户人姓名
-	*/
-	private String accName ;
-	/*
-	开户账号
-	*/
-	private String accNum ;
-	/*
-	银行账户类型-TO_PRIVATE:对私,TO_PUBLIC:对公
-	*/
-	private String accType ;
-	/*
 	详细地址
 	*/
+	@NotBlank(message = "详细地址必填")
+	@Length(message = "详细地址长度最大不超过200个数字",max = 200,min = 1)
 	private String addrDetail ;
 	/*
 	本系统编号
 	*/
+	@NotBlank(message = "apCode必填")
 	private String apCode ;
+	/*
+	本系统商户号
+	*/
+	private String apMercCode ;
 	/*
 	区
 	*/
+	@NotBlank(message = "区必填")
 	private String areaCode ;
-	/*
-	身份证背面ID
-	*/
-	private String backCardId ;
-	/*
-	银行卡照ID
-	*/
-	private String bankCardId ;
-	/*
-	开户行所在市
-	*/
-	private String bankCityCode ;
-	/*
-	银行编码
-	*/
-	private String bankCode ;
-	/*
-	开户行网点支行名
-	*/
-	private String bankNameBranch ;
-	/*
-	开户行所在省
-	*/
-	private String bankProvCode ;
 	/*
 	营业执照编号
 	*/
+	@NotBlank(message = "营业执照号必填")
+	@Length(message = "营业执照号长度不能超过50个字",max = 50,min = 1)
 	private String busLicenseNo ;
 	/*
 	营业执照有效期结束日期
 	*/
+	@NotBlank(message = "营业执照有效期必填")
+	@Length(message = "营业执照有效期长度不能超过10个字",max = 10,min = 1)
 	private String busLicenseValidityPeroid ;
 	/*
-	身份证正面照ID
+	渠道编号
 	*/
-	private String cardId ;
-	/*
-	银行卡类型-0:借记卡
-	*/
-	private String cardType ;
+	@NotBlank(message = "渠道编号必填")
+	private String channelCode ;
 	/*
 	市
 	*/
+	@NotBlank(message = "市必填")
 	private String cityCode ;
 	/*
 	创建人
@@ -99,6 +72,7 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	/*
 	行业类型
 	*/
+	@NotBlank(message = "行业类型必填")
 	private String customMccType ;
 	/*
 	数据状态:0:正常,1:停用
@@ -113,52 +87,50 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	private String email ;
 	/*
-	开户身份证号
-	*/
-	private String idCardNum ;
-	/*
-	身份证有效期
-	*/
-	private String idCardValidityPeroid ;
-	/*
 	商户进件类型
 	*/
 	private String incomeType ;
 	/*
 	证件编号
 	*/
+	@NotBlank(message = "身份证号必填")
+	@Length(message = "身份证长度由15-18位字组成",max = 18 ,min = 15)
 	private String legalIdCardNum ;
 	/*
 	身份证有效期结束日期
 	*/
+	@NotBlank(message = "身份证有效期结束日期必填")
+	@Length(message = "身份证有效期结束日期长度不能超过10个字",max = 10,min = 1)
 	private String legalIdCardValidityPeroid ;
 	/*
 	法人
 	*/
+	@NotBlank(message = "法人必填")
+	@Length(message = "商户名称由1-32个字组成",max = 32,min = 1)
 	private String legalPerson ;
 	/*
 	法人手机号
 	*/
+	@NotBlank(message = "法人手机号必填")
+	@Length(message = "手机号由11个数字组成",max = 11,min = 11)
 	private String legalPhone ;
-	/*
-	营业执照ID
-	*/
-	private String licenseId ;
 	/*
 	联系人
 	*/
+	@NotBlank(message = "联系人必填")
+	@Length(message = "联系人最大长度不能超过",max = 32,min = 1)
 	private String linkPerson ;
 	/*
 	联系人电话
 	*/
+	@NotBlank(message = "联系人手机号必填")
+	@Length(message = "联系人手机号由11个数字组成",max = 11,min = 11)
 	private String linkPhone ;
-	/*
-	门头照ID
-	*/
-	private String mainPhotoId ;
 	/*
 	商户名
 	*/
+	@NotBlank(message = "商户名称必填")
+	@Length(message = "商户名称由5-50个字组成",max = 50,min = 5)
 	private String mercName ;
 	/*
 	商户编号
@@ -167,38 +139,23 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	/*
 	商户简称
 	*/
+	@NotBlank(message = "商户简称号必填")
+	@Length(message = "商户简称1-15个字组成",max = 15,min = 1)
 	private String mercShortName ;
 	/*
 	商户类型-personal:个人,business:企业
 	*/
+	@NotBlank(message = "商户类型必填")
+	@Length(message = "商户类型由2-32个字组成",max = 32,min = 2)
 	private String mercType ;
-	/*
-	组织机构代码照ID
-	*/
-	private String orgPhotoId ;
-	/*
-	银行预留手机号
-	*/
-	private String phone ;
-	/*
-	手持身份证照ID
-	*/
-	private String picPeobleId ;
-	/*
-	非法人结算授权书ID
-	*/
-	private String powerId ;
 	/*
 	产品-ALIPAY:阿里,WECHATPAY:微信,QQPAY:QQ
 	*/
 	private String product ;
 	/*
-	商户协议照ID
-	*/
-	private String protocolPhotoId ;
-	/*
 	省
 	*/
+	@NotBlank(message = "省必填")
 	private String provCode ;
 	/*
 	费率
@@ -252,21 +209,6 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	}
 	
 	/**
-	* 渠道ID
-	*@return 
-	*/
-	public Integer getChannelId(){
-		return  channelId;
-	}
-	/**
-	* 渠道ID
-	*@param  channelId
-	*/
-	public void setChannelId(Integer channelId ){
-		this.channelId = channelId;
-	}
-	
-	/**
 	* 乐观锁
 	*@return 
 	*/
@@ -279,51 +221,6 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	public void setRevision(Integer revision ){
 		this.revision = revision;
-	}
-	
-	/**
-	* 开户人姓名
-	*@return 
-	*/
-	public String getAccName(){
-		return  accName;
-	}
-	/**
-	* 开户人姓名
-	*@param  accName
-	*/
-	public void setAccName(String accName ){
-		this.accName = accName;
-	}
-	
-	/**
-	* 开户账号
-	*@return 
-	*/
-	public String getAccNum(){
-		return  accNum;
-	}
-	/**
-	* 开户账号
-	*@param  accNum
-	*/
-	public void setAccNum(String accNum ){
-		this.accNum = accNum;
-	}
-	
-	/**
-	* 银行账户类型-TO_PRIVATE:对私,TO_PUBLIC:对公
-	*@return 
-	*/
-	public String getAccType(){
-		return  accType;
-	}
-	/**
-	* 银行账户类型-TO_PRIVATE:对私,TO_PUBLIC:对公
-	*@param  accType
-	*/
-	public void setAccType(String accType ){
-		this.accType = accType;
 	}
 	
 	/**
@@ -357,6 +254,21 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	}
 	
 	/**
+	* 本系统商户号
+	*@return 
+	*/
+	public String getApMercCode(){
+		return  apMercCode;
+	}
+	/**
+	* 本系统商户号
+	*@param  apMercCode
+	*/
+	public void setApMercCode(String apMercCode ){
+		this.apMercCode = apMercCode;
+	}
+	
+	/**
 	* 区
 	*@return 
 	*/
@@ -369,96 +281,6 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	public void setAreaCode(String areaCode ){
 		this.areaCode = areaCode;
-	}
-	
-	/**
-	* 身份证背面ID
-	*@return 
-	*/
-	public String getBackCardId(){
-		return  backCardId;
-	}
-	/**
-	* 身份证背面ID
-	*@param  backCardId
-	*/
-	public void setBackCardId(String backCardId ){
-		this.backCardId = backCardId;
-	}
-	
-	/**
-	* 银行卡照ID
-	*@return 
-	*/
-	public String getBankCardId(){
-		return  bankCardId;
-	}
-	/**
-	* 银行卡照ID
-	*@param  bankCardId
-	*/
-	public void setBankCardId(String bankCardId ){
-		this.bankCardId = bankCardId;
-	}
-	
-	/**
-	* 开户行所在市
-	*@return 
-	*/
-	public String getBankCityCode(){
-		return  bankCityCode;
-	}
-	/**
-	* 开户行所在市
-	*@param  bankCityCode
-	*/
-	public void setBankCityCode(String bankCityCode ){
-		this.bankCityCode = bankCityCode;
-	}
-	
-	/**
-	* 银行编码
-	*@return 
-	*/
-	public String getBankCode(){
-		return  bankCode;
-	}
-	/**
-	* 银行编码
-	*@param  bankCode
-	*/
-	public void setBankCode(String bankCode ){
-		this.bankCode = bankCode;
-	}
-	
-	/**
-	* 开户行网点支行名
-	*@return 
-	*/
-	public String getBankNameBranch(){
-		return  bankNameBranch;
-	}
-	/**
-	* 开户行网点支行名
-	*@param  bankNameBranch
-	*/
-	public void setBankNameBranch(String bankNameBranch ){
-		this.bankNameBranch = bankNameBranch;
-	}
-	
-	/**
-	* 开户行所在省
-	*@return 
-	*/
-	public String getBankProvCode(){
-		return  bankProvCode;
-	}
-	/**
-	* 开户行所在省
-	*@param  bankProvCode
-	*/
-	public void setBankProvCode(String bankProvCode ){
-		this.bankProvCode = bankProvCode;
 	}
 	
 	/**
@@ -492,33 +314,18 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	}
 	
 	/**
-	* 身份证正面照ID
+	* 渠道编号
 	*@return 
 	*/
-	public String getCardId(){
-		return  cardId;
+	public String getChannelCode(){
+		return  channelCode;
 	}
 	/**
-	* 身份证正面照ID
-	*@param  cardId
+	* 渠道编号
+	*@param  channelCode
 	*/
-	public void setCardId(String cardId ){
-		this.cardId = cardId;
-	}
-	
-	/**
-	* 银行卡类型-0:借记卡
-	*@return 
-	*/
-	public String getCardType(){
-		return  cardType;
-	}
-	/**
-	* 银行卡类型-0:借记卡
-	*@param  cardType
-	*/
-	public void setCardType(String cardType ){
-		this.cardType = cardType;
+	public void setChannelCode(String channelCode ){
+		this.channelCode = channelCode;
 	}
 	
 	/**
@@ -612,36 +419,6 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	}
 	
 	/**
-	* 开户身份证号
-	*@return 
-	*/
-	public String getIdCardNum(){
-		return  idCardNum;
-	}
-	/**
-	* 开户身份证号
-	*@param  idCardNum
-	*/
-	public void setIdCardNum(String idCardNum ){
-		this.idCardNum = idCardNum;
-	}
-	
-	/**
-	* 身份证有效期
-	*@return 
-	*/
-	public String getIdCardValidityPeroid(){
-		return  idCardValidityPeroid;
-	}
-	/**
-	* 身份证有效期
-	*@param  idCardValidityPeroid
-	*/
-	public void setIdCardValidityPeroid(String idCardValidityPeroid ){
-		this.idCardValidityPeroid = idCardValidityPeroid;
-	}
-	
-	/**
 	* 商户进件类型
 	*@return 
 	*/
@@ -717,21 +494,6 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	}
 	
 	/**
-	* 营业执照ID
-	*@return 
-	*/
-	public String getLicenseId(){
-		return  licenseId;
-	}
-	/**
-	* 营业执照ID
-	*@param  licenseId
-	*/
-	public void setLicenseId(String licenseId ){
-		this.licenseId = licenseId;
-	}
-	
-	/**
 	* 联系人
 	*@return 
 	*/
@@ -759,21 +521,6 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	public void setLinkPhone(String linkPhone ){
 		this.linkPhone = linkPhone;
-	}
-	
-	/**
-	* 门头照ID
-	*@return 
-	*/
-	public String getMainPhotoId(){
-		return  mainPhotoId;
-	}
-	/**
-	* 门头照ID
-	*@param  mainPhotoId
-	*/
-	public void setMainPhotoId(String mainPhotoId ){
-		this.mainPhotoId = mainPhotoId;
 	}
 	
 	/**
@@ -837,66 +584,6 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	}
 	
 	/**
-	* 组织机构代码照ID
-	*@return 
-	*/
-	public String getOrgPhotoId(){
-		return  orgPhotoId;
-	}
-	/**
-	* 组织机构代码照ID
-	*@param  orgPhotoId
-	*/
-	public void setOrgPhotoId(String orgPhotoId ){
-		this.orgPhotoId = orgPhotoId;
-	}
-	
-	/**
-	* 银行预留手机号
-	*@return 
-	*/
-	public String getPhone(){
-		return  phone;
-	}
-	/**
-	* 银行预留手机号
-	*@param  phone
-	*/
-	public void setPhone(String phone ){
-		this.phone = phone;
-	}
-	
-	/**
-	* 手持身份证照ID
-	*@return 
-	*/
-	public String getPicPeobleId(){
-		return  picPeobleId;
-	}
-	/**
-	* 手持身份证照ID
-	*@param  picPeobleId
-	*/
-	public void setPicPeobleId(String picPeobleId ){
-		this.picPeobleId = picPeobleId;
-	}
-	
-	/**
-	* 非法人结算授权书ID
-	*@return 
-	*/
-	public String getPowerId(){
-		return  powerId;
-	}
-	/**
-	* 非法人结算授权书ID
-	*@param  powerId
-	*/
-	public void setPowerId(String powerId ){
-		this.powerId = powerId;
-	}
-	
-	/**
 	* 产品-ALIPAY:阿里,WECHATPAY:微信,QQPAY:QQ
 	*@return 
 	*/
@@ -909,21 +596,6 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	public void setProduct(String product ){
 		this.product = product;
-	}
-	
-	/**
-	* 商户协议照ID
-	*@return 
-	*/
-	public String getProtocolPhotoId(){
-		return  protocolPhotoId;
-	}
-	/**
-	* 商户协议照ID
-	*@param  protocolPhotoId
-	*/
-	public void setProtocolPhotoId(String protocolPhotoId ){
-		this.protocolPhotoId = protocolPhotoId;
 	}
 	
 	/**
