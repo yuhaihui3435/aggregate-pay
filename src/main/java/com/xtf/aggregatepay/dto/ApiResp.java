@@ -4,7 +4,7 @@ import com.xtf.aggregatepay.Consts;
 import lombok.Data;
 
 @Data
-public class ApiResp {
+public class ApiResp<T> {
 
     public ApiResp(){
 
@@ -16,7 +16,7 @@ public class ApiResp {
     }
     private String respCode;
     private String respMsg;
-    private String jsonData;
+    private T jsonData;
     private String sign;
 
     public void err(String msg){

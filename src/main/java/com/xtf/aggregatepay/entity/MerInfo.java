@@ -189,12 +189,23 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	更新时间
 	*/
 	private Date updatedTime ;
+
+	private String appMercCode;
 	
 	public MerInfo() {
 	}
-	
+
+	public String getAppMercCode() {
+		return appMercCode;
+	}
+
+	public void setAppMercCode(String appMercCode) {
+		this.appMercCode = appMercCode;
+	}
+
 	/**
 	* ID
+
 	*@return 
 	*/
 	public Integer getId(){
