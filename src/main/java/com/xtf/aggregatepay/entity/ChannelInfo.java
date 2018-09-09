@@ -2,14 +2,17 @@ package com.xtf.aggregatepay.entity;
 import java.math.*;
 import java.util.Date;
 import java.sql.Timestamp;
+
+import lombok.Builder;
 import org.beetl.sql.core.annotatoin.Table;
 
 
 /* 
 * 
-* gen by beetlsql 2018-09-04
+* gen by beetlsql 2018-09-08
 */
 @Table(name="aggregate_pay_db.CHANNEL_INFO_T")
+@Builder(toBuilder = true)
 public class ChannelInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	
 	/*
@@ -85,21 +88,29 @@ public class ChannelInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	private String name ;
 	/*
-	费率整数
-	*/
-	private String rate ;
-	/*
-	费率编码
-	*/
-	private String rateCode ;
-	/*
 	状态-0:正常;1:停用
 	*/
 	private String status ;
 	/*
+	费率整数
+	*/
+	private String t1Rate ;
+	/*
+	费率编码
+	*/
+	private String t1RateCode ;
+	/*
 	联系电话
 	*/
 	private String tel ;
+	/*
+	T0费率
+	*/
+	private String tsRate ;
+	/*
+	T0费率编号
+	*/
+	private String tsRateCode ;
 	/*
 	更新人
 	*/
@@ -117,8 +128,8 @@ public class ChannelInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	private Date updatedTime ;
 	
-	public ChannelInfo() {
-	}
+//	public ChannelInfo() {
+//	}
 	
 	/**
 	* ID
@@ -391,36 +402,6 @@ public class ChannelInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	}
 	
 	/**
-	* 费率整数
-	*@return 
-	*/
-	public String getRate(){
-		return  rate;
-	}
-	/**
-	* 费率整数
-	*@param  rate
-	*/
-	public void setRate(String rate ){
-		this.rate = rate;
-	}
-	
-	/**
-	* 费率编码
-	*@return 
-	*/
-	public String getRateCode(){
-		return  rateCode;
-	}
-	/**
-	* 费率编码
-	*@param  rateCode
-	*/
-	public void setRateCode(String rateCode ){
-		this.rateCode = rateCode;
-	}
-	
-	/**
 	* 状态-0:正常;1:停用
 	*@return 
 	*/
@@ -436,6 +417,36 @@ public class ChannelInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	}
 	
 	/**
+	* 费率整数
+	*@return 
+	*/
+	public String getT1Rate(){
+		return  t1Rate;
+	}
+	/**
+	* 费率整数
+	*@param  t1Rate
+	*/
+	public void setT1Rate(String t1Rate ){
+		this.t1Rate = t1Rate;
+	}
+	
+	/**
+	* 费率编码
+	*@return 
+	*/
+	public String getT1RateCode(){
+		return  t1RateCode;
+	}
+	/**
+	* 费率编码
+	*@param  t1RateCode
+	*/
+	public void setT1RateCode(String t1RateCode ){
+		this.t1RateCode = t1RateCode;
+	}
+	
+	/**
 	* 联系电话
 	*@return 
 	*/
@@ -448,6 +459,36 @@ public class ChannelInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	public void setTel(String tel ){
 		this.tel = tel;
+	}
+	
+	/**
+	* T0费率
+	*@return 
+	*/
+	public String getTsRate(){
+		return  tsRate;
+	}
+	/**
+	* T0费率
+	*@param  tsRate
+	*/
+	public void setTsRate(String tsRate ){
+		this.tsRate = tsRate;
+	}
+	
+	/**
+	* T0费率编号
+	*@return 
+	*/
+	public String getTsRateCode(){
+		return  tsRateCode;
+	}
+	/**
+	* T0费率编号
+	*@param  tsRateCode
+	*/
+	public void setTsRateCode(String tsRateCode ){
+		this.tsRateCode = tsRateCode;
 	}
 	
 	/**

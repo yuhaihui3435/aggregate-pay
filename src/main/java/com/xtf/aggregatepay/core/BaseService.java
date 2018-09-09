@@ -102,7 +102,7 @@ public abstract class BaseService<T> {
         return baseDao.updateById(entity);
     }
     @Transactional
-    public int updateTplByuId(T entity){
+    public int updateTplById(T entity){
         setUpdateTime(entity);
         return baseDao.updateTemplateById(entity);
     }

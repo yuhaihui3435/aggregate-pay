@@ -21,7 +21,7 @@ public class BeetlGenCode {
         config.setIgnorePrefix("_T");
         config.preferBigDecimal(true);
         config.setBaseClass("com.xtf.aggregatepay.core.BaseEntity");
-        String table="MER_INFO_T";
+        String table="TRADE_DATA_T";
         sqlManager.genPojoCode(table,"com.xtf.aggregatepay.entity",config);
         sqlManager.genSQLFile(table,config);
     }

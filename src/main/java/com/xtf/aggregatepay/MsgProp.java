@@ -11,7 +11,10 @@ import org.springframework.stereotype.Component;
 @PropertySource("classpath:msg.properties")
 public class MsgProp {
     @Value("${err.uploadPic}")
-    private String uploadPic;
-
+    private String uploadPic_err;
+    @Value("${err.sign}")
+    private String sign_err;
+    @Value("${err.serverRetSign}")
+    private String serverRetSign_err;
 
 }

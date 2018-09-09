@@ -1,6 +1,8 @@
 package com.xtf.aggregatepay.handler;
 
+import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.core.LogicException;
+import com.xtf.aggregatepay.core.ValidationException;
 import com.xtf.aggregatepay.dto.ApiResp;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.validation.BindException;
@@ -38,10 +40,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseBody
     public ApiResp handleException(Exception e){
-        log.error("系统未知错误：异常信息为>>{}",e.getMessage());
-        ApiResp response = new ApiResp();
-        response.err("系统未知错误。");
-        return response;
+        log.error("系统错误：异常信息为>>{}",e.getMessage());
+        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg("系统错误:"+e.getMessage()).build();
     }
 
     /**
@@ -53,9 +53,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     ApiResp handleBusinessException(LogicException e){
         log.error("系统业务操作失败：异常信息>>{}",e.getMessage());
-        ApiResp response = new ApiResp();
-        response.err(e.getPrettyExceptionMsg());
-        return response;
+        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(e.getPrettyExceptionMsg()).build();
     }
 
     /**
@@ -73,9 +71,8 @@ public class GlobalExceptionHandler {
             errorMesssage += fieldError.getDefaultMessage() + "\n";
         }
         log.error("数据校验失败原因:"+errorMesssage);
-        ApiResp response = new ApiResp();
-        response.err(errorMesssage);
-        return response;
+
+        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(errorMesssage).build();
     }
 
     @ExceptionHandler(value =BindException.class)
@@ -87,11 +84,15 @@ public class GlobalExceptionHandler {
         StringBuilder sb = new StringBuilder();
         sb.append(fieldError.getField()).append("=[").append(fieldError.getRejectedValue()).append("]")
                 .append(fieldError.getDefaultMessage());
-        ApiResp r = new ApiResp();
-        r.err(sb.toString());
-        return r;
+        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(sb.toString()).build();
     }
 
+    @ExceptionHandler(value =ValidationException.class)
+    @ResponseBody
+    public ApiResp handleValidationException(ValidationException e) throws BindException {
+        log.error("手动执行数据校验：校验未通过，校验结果为>>{}",e.getMessage());
+        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(e.getMessage()).build();
+    }
 
 
 }

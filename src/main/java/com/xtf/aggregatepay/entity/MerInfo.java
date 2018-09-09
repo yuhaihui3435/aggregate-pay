@@ -2,6 +2,8 @@ package com.xtf.aggregatepay.entity;
 import java.math.*;
 import java.util.Date;
 import java.sql.Timestamp;
+
+import lombok.Builder;
 import org.beetl.sql.core.annotatoin.Table;
 import org.hibernate.validator.constraints.Length;
 
@@ -13,6 +15,7 @@ import javax.validation.constraints.NotBlank;
 * gen by beetlsql 2018-09-04
 */
 @Table(name="aggregate_pay_db.MER_INFO_T")
+@Builder
 public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	
 	/*
@@ -192,8 +195,8 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 
 	private String appMercCode;
 	
-	public MerInfo() {
-	}
+//	public MerInfo() {
+//	}
 
 	public String getAppMercCode() {
 		return appMercCode;

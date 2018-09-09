@@ -47,7 +47,7 @@ public class DictService extends BaseService<Dict> {
     private void dictItemCache(Dict dict){
         List<DictItem> dictItems=dictItemService.findByDictId(dict.getId());
         EhcacheUtil.getInstance().put(Dict.class.getSimpleName(),dict.getDictCode(),dictItems);
-        dictItems.stream().forEach(dictItem -> EhcacheUtil.getInstance().put(Dict.class.getSimpleName(),dict.getDictCode(),dict));
+        dictItems.stream().forEach(dictItem -> EhcacheUtil.getInstance().put(DictItem.class.getSimpleName(),dict.getDictCode(),dict));
     }
 
 }

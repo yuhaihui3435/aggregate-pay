@@ -6,12 +6,12 @@ sample
 
 cols
 ===
-	REVISION,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME,DELETE_TIME,DELETE_BY,ID,CODE,NAME,TEL,EMAIL,BANK_NAME,BANK_ACCOUNT,BANK_ACCOUNT_NAME,BANK_CODE,ACC_TYPE,BANK_TEL,BAKN_ID_CARD,ID_CARD_VALIDITY_PEROID,RATE,RATE_CODE,CEILING_OF_DAY,CEILING_OF_SINGLE,STATUS,PID
+	REVISION,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME,DELETE_TIME,DELETE_BY,ID,CODE,NAME,TEL,EMAIL,BANK_NAME,BANK_ACCOUNT,BANK_ACCOUNT_NAME,BANK_CODE,ACC_TYPE,BANK_TEL,BAKN_ID_CARD,ID_CARD_VALIDITY_PEROID,T1_RATE,T1_RATE_CODE,CEILING_OF_DAY,CEILING_OF_SINGLE,STATUS,PID,TS_RATE,TS_RATE_CODE
 
 updateSample
 ===
 	
-	REVISION=#revision#,CREATED_BY=#createdBy#,CREATED_TIME=#createdTime#,UPDATED_BY=#updatedBy#,UPDATED_TIME=#updatedTime#,DELETE_TIME=#deleteTime#,DELETE_BY=#deleteBy#,ID=#id#,CODE=#code#,NAME=#name#,TEL=#tel#,EMAIL=#email#,BANK_NAME=#bankName#,BANK_ACCOUNT=#bankAccount#,BANK_ACCOUNT_NAME=#bankAccountName#,BANK_CODE=#bankCode#,ACC_TYPE=#accType#,BANK_TEL=#bankTel#,BAKN_ID_CARD=#baknIdCard#,ID_CARD_VALIDITY_PEROID=#idCardValidityPeroid#,RATE=#rate#,RATE_CODE=#rateCode#,CEILING_OF_DAY=#ceilingOfDay#,CEILING_OF_SINGLE=#ceilingOfSingle#,STATUS=#status#,PID=#pid#
+	REVISION=#revision#,CREATED_BY=#createdBy#,CREATED_TIME=#createdTime#,UPDATED_BY=#updatedBy#,UPDATED_TIME=#updatedTime#,DELETE_TIME=#deleteTime#,DELETE_BY=#deleteBy#,ID=#id#,CODE=#code#,NAME=#name#,TEL=#tel#,EMAIL=#email#,BANK_NAME=#bankName#,BANK_ACCOUNT=#bankAccount#,BANK_ACCOUNT_NAME=#bankAccountName#,BANK_CODE=#bankCode#,ACC_TYPE=#accType#,BANK_TEL=#bankTel#,BAKN_ID_CARD=#baknIdCard#,ID_CARD_VALIDITY_PEROID=#idCardValidityPeroid#,T1_RATE=#t1Rate#,T1_RATE_CODE=#t1RateCode#,CEILING_OF_DAY=#ceilingOfDay#,CEILING_OF_SINGLE=#ceilingOfSingle#,STATUS=#status#,PID=#pid#,TS_RATE=#tsRate#,TS_RATE_CODE=#tsRateCode#
 
 condition
 ===
@@ -77,11 +77,11 @@ condition
 	@if(!isEmpty(idCardValidityPeroid)){
 	 and ID_CARD_VALIDITY_PEROID=#idCardValidityPeroid#
 	@}
-	@if(!isEmpty(rate)){
-	 and RATE=#rate#
+	@if(!isEmpty(t1Rate)){
+	 and T1_RATE=#t1Rate#
 	@}
-	@if(!isEmpty(rateCode)){
-	 and RATE_CODE=#rateCode#
+	@if(!isEmpty(t1RateCode)){
+	 and T1_RATE_CODE=#t1RateCode#
 	@}
 	@if(!isEmpty(ceilingOfDay)){
 	 and CEILING_OF_DAY=#ceilingOfDay#
@@ -94,6 +94,12 @@ condition
 	@}
 	@if(!isEmpty(pid)){
 	 and PID=#pid#
+	@}
+	@if(!isEmpty(tsRate)){
+	 and TS_RATE=#tsRate#
+	@}
+	@if(!isEmpty(tsRateCode)){
+	 and TS_RATE_CODE=#tsRateCode#
 	@}
 	
 	
