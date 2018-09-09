@@ -60,37 +60,31 @@ public abstract class BaseService<T> {
     public long count(){
         return sqlManager.allCount(getTClass());
     }
-    @Transactional
+
     public void insert(T entity){
         setCreateTime(entity);
         sqlManager.insert(entity);
     }
-    @Transactional
     public void insertAutoKey(T entity){
         setCreateTime(entity);
         sqlManager.insert(entity,true);
     }
-    @Transactional
     public void insertTpl(T entity){
         setCreateTime(entity);
         sqlManager.insertTemplate(entity);
     }
-    @Transactional
     public void inserTplAutoKey(T entity){
         setCreateTime(entity);
         sqlManager.insertTemplate(entity,true);
     }
-    @Transactional
     public void insertBatch(List<T> entitys){
         entitys.stream().forEach(entity->setCreateTime(entity));
         sqlManager.insertBatch(getTClass(),entitys);
     }
-    @Transactional
     public int update(T entity){
         setUpdateTime(entity);
         return sqlManager.updateById(entity);
     }
-    @Transactional
     public int updateTplById(T entity){
         setUpdateTime(entity);
         return sqlManager.updateTemplateById(entity);
@@ -101,7 +95,6 @@ public abstract class BaseService<T> {
      * @param id
      * @return
      */
-    @Transactional
     public int logicDel(Object id){
         T entity=one(id);
         setDeleteTime(entity);
@@ -113,7 +106,6 @@ public abstract class BaseService<T> {
      * @param id
      * @return
      */
-    @Transactional
     public int del(Object id){
         return  sqlManager.deleteById(getTClass(),id);
     }
@@ -124,7 +116,7 @@ public abstract class BaseService<T> {
 
     private void setCreateTime(T entity){
         try {
-            Method method=entity.getClass().getMethod("setCreateTime", Date.class);
+            Method method=entity.getClass().getMethod("setCreatedTime", Date.class);
             method.invoke(entity,new Date());
         } catch (NoSuchMethodException e) {
             log.warn("缺少setCreateTime方法");
@@ -137,7 +129,7 @@ public abstract class BaseService<T> {
 
     private void setUpdateTime(T entity){
         try {
-            Method method=entity.getClass().getMethod("setUpdateTime", Date.class);
+            Method method=entity.getClass().getMethod("setUpdatedTime", Date.class);
             method.invoke(entity,new Date());
         } catch (NoSuchMethodException e) {
             log.warn("缺少setUpdateTime方法");
@@ -150,7 +142,7 @@ public abstract class BaseService<T> {
 
     private void setDeleteTime(T entity){
         try {
-            Method method=entity.getClass().getMethod("deleteTime", Date.class);
+            Method method=entity.getClass().getMethod("setDeleteTime", Date.class);
             method.invoke(entity,new Date());
         } catch (NoSuchMethodException e) {
             log.warn("缺少deleteTime方法");

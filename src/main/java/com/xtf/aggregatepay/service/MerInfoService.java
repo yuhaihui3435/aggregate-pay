@@ -22,6 +22,7 @@ import java.util.Map;
 
 @Service
 @Log4j2
+@Transactional
 public class MerInfoService extends BaseService<MerInfo> {
 
     @Autowired
@@ -98,6 +99,12 @@ public class MerInfoService extends BaseService<MerInfo> {
         if(!picMap.containsKey(Consts.PicType.CARD.getStr()))throw new LogicException("新增商户信息失败，原因：缺少身份证正面照片");
         if(!picMap.containsKey(Consts.PicType.BACKCARD.getStr()))throw new LogicException("新增商户信息失败，原因：缺少身份证背面照片");
 
+//        picMap.clear();
+//        picMap.put(Consts.PicType.LICENSE.getStr(),"21279");
+//        picMap.put(Consts.PicType.CARD.getStr(),"21280");
+//        picMap.put(Consts.PicType.BACKCARD.getStr(),"21281");
+
+
         String agentNum=APUtil.getAgentNum();
         String agentKey=APUtil.getAgentKey();
         String tradeFlowNo=String.valueOf(System.nanoTime());//交易流水号
@@ -121,6 +128,7 @@ public class MerInfoService extends BaseService<MerInfo> {
 
         String merNum=merchantClient.addMerInfo(param);
         merInfo.setMercNum(merNum);
+        merInfo.setTradeFlowNo(tradeFlowNo);
         merInfo.setDataStatus(Consts.STATUS.NORMAL.getVal());
         merInfo.setStatus(Consts.MER_STATUS.DDSH.name());
         insertAutoKey(merInfo);

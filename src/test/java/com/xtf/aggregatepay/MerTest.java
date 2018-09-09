@@ -47,21 +47,21 @@ public class MerTest {
 
         Map<String,String> merBankInfo=new HashMap<>();
         merBankInfo.put("accType","TO_PRIVATE");
-        merBankInfo.put("bankCode","YKSB");
+        merBankInfo.put("bankCode","BCM");
         merBankInfo.put("accName","赵四");
         merBankInfo.put("bankProvCode","210000");
         merBankInfo.put("bankCityCode","210100");
-        merBankInfo.put("accNum","6228487678909883");
+        merBankInfo.put("accNum","6222600310001111765");
         merBankInfo.put("idCardNum","210111198402223435");
         merBankInfo.put("idCardValidityPeroid","2020-07-19");
-        merBankInfo.put("phone","13789898989");
+        merBankInfo.put("phone","13998377271");
         merBankInfo.put("bankNameBranch","营口银行沈阳分行");
 
-        File file=new File("d:/CARD.jpg");
-        File file1=new File("d:/LICENSE.jpg");
-        File file2=new File("d:/BACKCARD.jpg");
+        File file=new File("/Users/yuhaihui/uploadPic/CARD.jpg");
+        File file1=new File("/Users/yuhaihui/uploadPic/LICENSE.jpg");
+        File file2=new File("/Users/yuhaihui/uploadPic/BACKCARD.jpg");
 
-        Gson gson=new Gson();
+//        Gson gson=new Gson();
 //        Map ret=gson.fromJson("{\"agentNum\":\"A11011171016120226341\",\"product\":{\"scan\":\"ALIPAY,WECHATPAY\"},\"tradeFlowNo\":\"193096483598523\",\"merchantBankcard\":{\"accName\":\"赵四\",\"accNum\":\"6228487678909883\",\"accType\":\"TO_PRIVATE\",\"bankCityCode\":\"210100\",\"bankCode\":\"YKSB\",\"bankNameBranch\":\"营口银行沈阳分行\",\"bankProvCode\":\"210000\",\"cardType\":\"0\",\"idCardNum\":\"2101992334533341\",\"idCardValidityPeroid\":\"2020-7-19\",\"phone\":\"13789898989\"},\"sign\":\"0ED0BF1439812EF1B038DFEC5EE4CCE60244B47D3F9CC010473D59A75F26C200\",\"merchantInfo\":{\"addrDetail\":\"辽宁省沈阳市和平区总统大厦\",\"apCode\":\"123456789\",\"areaCode\":\"210102\",\"busLicenseNo\":\"f12323232302321\",\"busLicenseValidityPeroid\":\"2020-09-27\",\"channelCode\":\"10000000\",\"cityCode\":\"210100\",\"customMccType\":\"C00018\",\"email\":\"12@qq.com\",\"idCardNum\":\"21011119923012322\",\"idCardValidityPeroid\":\"2020-09-27\",\"incomeType\":\"normal\",\"legalPerson\":\"赵四\",\"legalPhone\":\"13888888888\",\"linkPerson\":\"刘能\",\"linkPhone\":\"13700000000\",\"mercName\":\"大象公社\",\"mercShortName\":\"大象\",\"mercType\":\"personal\",\"provCode\":\"210000\",\"rate\":\"3.8\",\"rateCode\":\"10004200\",\"settleWay\":\"T1\"},\"merImg\":{\"cardId\":\"21180\",\"backCarId\":\"21182\",\"licenseId\":\"21181\"},\"rateCode\":\"10004200\",\"settleWay\":\"T1\"}",Map.class);
 
 

@@ -43,10 +43,7 @@ public class Sha256 {
         parseData= MapUtil.sort(parseData);
         parseData.remove("sign");
         String sign = null;
-        log.info("class = MerchantController,  method = reqAgentNoKey, msg = 请求进来开始计算签名 , Param is  " +
-                "" + data + " AgentNo ： " + agentKey);
         sign = Sha256.signBySha256(parseData, agentKey);
-        log.info("class = MerchantController,  method = reqAgentNoKey, msg = 请求进来开始计算签名 , Result sign is ： " + sign);
         return sign;
     }
     /**

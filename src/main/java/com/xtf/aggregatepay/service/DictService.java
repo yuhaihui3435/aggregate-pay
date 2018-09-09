@@ -10,11 +10,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.List;
 
 @Service
+@Transactional
 public class DictService extends BaseService<Dict> {
 
     protected static final Logger logger = LoggerFactory.getLogger(DictService.class);

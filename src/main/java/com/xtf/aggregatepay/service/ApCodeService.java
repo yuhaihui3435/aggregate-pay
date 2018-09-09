@@ -4,9 +4,11 @@ import com.xtf.aggregatepay.core.BaseService;
 import com.xtf.aggregatepay.entity.ApCode;
 import com.xtf.aggregatepay.util.EhcacheUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 @Service
+@Transactional
 public class ApCodeService extends BaseService<ApCode> {
 
 

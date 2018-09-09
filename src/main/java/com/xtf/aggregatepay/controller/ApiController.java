@@ -138,7 +138,7 @@ public class ApiController extends BaseController{
      */
     @RequestMapping(value ="/addMerInfo")
     @ResponseBody
-    public ApiResp<Object> addMerAllInfo(@RequestParam("files") MultipartFile[] files,ApiReq apiReq) throws IOException {
+    public ApiResp<Object> addMerAllInfo(@RequestParam("files") MultipartFile[] files,ApiReq apiReq) throws IOException, InterruptedException {
         String json=apiReq.getJsonData();
 
         //必须上传 营业执照照片，身份证正面，身份证背面

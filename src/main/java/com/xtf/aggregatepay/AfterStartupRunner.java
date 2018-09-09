@@ -15,8 +15,10 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.ehcache.EhCacheCacheManager;
 import org.springframework.cache.ehcache.EhCacheManagerUtils;
 import org.springframework.stereotype.Component;
+import sun.plugin2.util.SystemUtil;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.List;
 
 /**
@@ -48,8 +50,10 @@ public class AfterStartupRunner implements ApplicationRunner
     @Override
     public void run(ApplicationArguments args) throws Exception {
         allAddInCache();
+        //创建上传图片保存路径
         File file=new File(picPath);
-        if(!file.exists())file.mkdir();
+        if (!file.exists())
+            file.mkdir();
     }
 
     private void allAddInCache(){

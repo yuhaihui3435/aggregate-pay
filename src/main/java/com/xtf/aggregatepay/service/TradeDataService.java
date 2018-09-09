@@ -42,6 +42,7 @@ import java.util.Map;
  */
 @Service
 @Log4j2
+@Transactional
 public class TradeDataService extends BaseService<TradeData> {
 
     @Autowired

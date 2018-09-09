@@ -3,6 +3,7 @@ package com.xtf.aggregatepay.service;
 import com.xtf.aggregatepay.core.BaseService;
 import com.xtf.aggregatepay.entity.DictItem;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ import java.util.List;
  * 版本:     [v1.0]
  */
 @Service
+@Transactional
 public class DictItemService extends BaseService<DictItem> {
 
     public List<DictItem> findByDictId(Integer dictId){
