@@ -1,6 +1,7 @@
 package com.xtf.aggregatepay.service;
 
 import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSON;
 import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.client.MerchantClient;
 import com.xtf.aggregatepay.core.BaseService;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.beans.Transient;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,9 +69,9 @@ public class MerInfoService extends BaseService<MerInfo> {
      * @return
      */
     @Transactional
-    public MerInfo addMerInfo(MerInfo merInfo, MerBankInfo merBankInfo, Map<Consts.PicType,String> picTypeStringMap){
-        log.info("开始向渠道上送商户进件入网请求,商户的基本信息为 ${}",merInfo.toString());
-        log.info("查看商户对应的渠道商信息,渠道号 ${}",merInfo.getChannelCode());
+    public MerInfo addMerInfo(MerInfo merInfo, MerBankInfo merBankInfo, Map<Consts.PicType,String> picTypeStringMap) throws IOException {
+        log.info("开始向渠道上送商户进件入网请求,商户的基本信息为 ");
+        log.info("查看商户对应的渠道商信息,渠道号 {}",merInfo.getChannelCode());
         ChannelInfo channelInfo=channelInfoService.findByCode(merInfo.getChannelCode());
         if(channelInfo==null)throw new LogicException("新增商户信息失败，原因：渠道商不存在或被停用");
         //依据商户的结算方式，从商户所属渠道那边获取对应的交易费率
@@ -80,7 +82,7 @@ public class MerInfoService extends BaseService<MerInfo> {
             merInfo.setRateCode(channelInfo.getTsRateCode());
             merInfo.setRate(channelInfo.getTsRate());
         }else{
-            log.error("商户结算方式不正确，当前值为 ${}",merInfo.getSettleWay());
+            log.error("商户结算方式不正确，当前值为 {}",merInfo.getSettleWay());
             throw new LogicException("结算方式设置不正确，请设置为T1或者TS");
         }
 
@@ -102,27 +104,27 @@ public class MerInfoService extends BaseService<MerInfo> {
         Map<String,Object> param=new HashMap<>();
         param.put("agentNum",agentNum);
         param.put("tradeFlowNo",tradeFlowNo);
-        param.put("merchantInfo",merInfo);
-        param.put("merchantBankcard",merBankInfo);
-        param.put("merImg",picMap);
+        param.put("merchantInfo", JSON.toJSONString(merInfo).replaceAll("\"","\\\""));
+        param.put("merchantBankcard",JSON.toJSONString(merBankInfo).replaceAll("\"","\\\""));
+        param.put("merImg",JSON.toJSONString(picMap).replaceAll("\"","\\\""));
         param.put("rateCode",merInfo.getRateCode());
         param.put("settleWay", merInfo.getSettleWay());
         Map<String,String> product=new HashMap<>();
         product.put("scan","ALIPAY,WECHATPAY");
-        param.put("product",product);
+        param.put("product",JSON.toJSONString(product).replaceAll("\"","\\\""));
 
-        log.info("商户进件数据准备完成,内容为  ${}",JSONUtil.toJsonStr(param));
+        log.info("商户进件数据准备完成,内容为  {}",JSONUtil.toJsonStr(param));
         log.info("开始进行sha256计算，获取sign");
         String sign=Sha256.sha256ByAgentKey(param,agentKey);
-        log.info("SIGN结果= ${}",sign);
+        log.info("SIGN结果= {}",sign);
         param.put("sign",sign);
 
         String merNum=merchantClient.addMerInfo(param);
         merInfo.setMercNum(merNum);
         merInfo.setDataStatus(Consts.STATUS.NORMAL.getVal());
         merInfo.setStatus(Consts.MER_STATUS.DDSH.name());
-        KeyHolder keyHolder=insertReturnKey(merInfo);
-        Integer merId=keyHolder.getInt();
+        insertAutoKey(merInfo);
+        Integer merId=merInfo.getId();
         merBankInfo.setMerId(merId);
         merBankInfoService.insertAutoKey(merBankInfo);
         return merInfo;

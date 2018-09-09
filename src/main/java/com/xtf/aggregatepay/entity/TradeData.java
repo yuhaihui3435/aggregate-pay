@@ -4,6 +4,7 @@ import java.util.Date;
 import java.sql.Timestamp;
 
 import lombok.Builder;
+import lombok.experimental.Tolerate;
 import org.beetl.sql.core.annotatoin.Table;
 
 import javax.validation.constraints.Max;
@@ -146,9 +147,9 @@ public class TradeData extends com.xtf.aggregatepay.core.BaseEntity  {
 	更新时间
 	*/
 	private Date updatedTime ;
-	
-//	public TradeData() {
-//	}
+	@Tolerate
+	public TradeData() {
+	}
 	
 	/**
 	* ID

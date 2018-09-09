@@ -1,13 +1,12 @@
 package com.xtf.aggregatepay.entity;
-import java.math.*;
-import java.util.Date;
-import java.sql.Timestamp;
 
 import lombok.Builder;
+import lombok.experimental.Tolerate;
 import org.beetl.sql.core.annotatoin.Table;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
+import java.util.Date;
 
 
 /* 
@@ -98,13 +97,13 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	@NotBlank(message = "身份证号必填")
 	@Length(message = "身份证长度由15-18位字组成",max = 18 ,min = 15)
-	private String legalIdCardNum ;
+	private String idCardNum ;
 	/*
 	身份证有效期结束日期
 	*/
 	@NotBlank(message = "身份证有效期结束日期必填")
 	@Length(message = "身份证有效期结束日期长度为10，YYYY-MM-DD格式",max = 11,min = 9)
-	private String legalIdCardValidityPeroid ;
+	private String idCardValidityPeroid ;
 	/*
 	法人
 	*/
@@ -133,7 +132,7 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	商户名
 	*/
 	@NotBlank(message = "商户名称必填")
-	@Length(message = "商户名称由5-50个字组成",max = 50,min = 5)
+	@Length(message = "商户名称由2-50个字组成",max = 50,min = 2)
 	private String mercName ;
 	/*
 	商户编号
@@ -194,9 +193,9 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	private Date updatedTime ;
 
 	private String appMercCode;
-	
-//	public MerInfo() {
-//	}
+	@Tolerate
+	public MerInfo() {
+	}
 
 	public String getAppMercCode() {
 		return appMercCode;
@@ -451,30 +450,30 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	* 证件编号
 	*@return 
 	*/
-	public String getLegalIdCardNum(){
-		return  legalIdCardNum;
+	public String getIdCardNum(){
+		return  idCardNum;
 	}
 	/**
 	* 证件编号
-	*@param  legalIdCardNum
+	*@param  idCardNum
 	*/
-	public void setLegalIdCardNum(String legalIdCardNum ){
-		this.legalIdCardNum = legalIdCardNum;
+	public void setIdCardNum(String idCardNum ){
+		this.idCardNum = idCardNum;
 	}
 	
 	/**
 	* 身份证有效期结束日期
 	*@return 
 	*/
-	public String getLegalIdCardValidityPeroid(){
-		return  legalIdCardValidityPeroid;
+	public String getIdCardValidityPeroid(){
+		return  idCardValidityPeroid;
 	}
 	/**
 	* 身份证有效期结束日期
-	*@param  legalIdCardValidityPeroid
+	*@param  idCardValidityPeroid
 	*/
-	public void setLegalIdCardValidityPeroid(String legalIdCardValidityPeroid ){
-		this.legalIdCardValidityPeroid = legalIdCardValidityPeroid;
+	public void setIdCardValidityPeroid(String idCardValidityPeroid ){
+		this.idCardValidityPeroid = idCardValidityPeroid;
 	}
 	
 	/**

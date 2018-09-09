@@ -6,12 +6,12 @@ sample
 
 cols
 ===
-	AP_CODE,AP_KEY,MERC_INFO
+	AP_CODE,AP_KEY,CHANNEL_CODE
 
 updateSample
 ===
 	
-	AP_CODE=#apCode#,AP_KEY=#apKey#,MERC_INFO=#mercInfo#
+	AP_CODE=#apCode#,AP_KEY=#apKey#,CHANNEL_CODE=#channelCode#
 
 condition
 ===
@@ -23,8 +23,8 @@ condition
 	@if(!isEmpty(apKey)){
 	 and AP_KEY=#apKey#
 	@}
-	@if(!isEmpty(mercInfo)){
-	 and MERC_INFO=#mercInfo#
+	@if(!isEmpty(channelCode)){
+	 and CHANNEL_CODE=#channelCode#
 	@}
 	
 	

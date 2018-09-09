@@ -1,110 +1,99 @@
 package com.xtf.aggregatepay.core;
 
-import com.xtf.aggregatepay.entity.ApCode;
 import lombok.extern.log4j.Log4j2;
 import org.beetl.sql.core.SQLManager;
 import org.beetl.sql.core.db.KeyHolder;
 import org.beetl.sql.core.engine.PageQuery;
 import org.beetl.sql.core.mapper.BaseMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.Date;
 import java.util.List;
 @Log4j2
 public abstract class BaseService<T> {
 
-
-    @Autowired
-    protected BaseDao<T> baseDao;
     @Autowired
     protected SQLManager sqlManager;
 
+    public Class<T> getTClass() {
+        return (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+    }
 
     public List<T> all(){
-        return baseDao.all();
+        return sqlManager.all(getTClass());
     }
 
     public List<T> all(int start,int size){
-        return baseDao.all(start,size);
+        return sqlManager.all(getTClass(),start,size);
     }
 
     public List<T> tpl(T entity){
-        return baseDao.template(entity);
+        List<T> ret=sqlManager.template(entity);
+        return sqlManager.template(entity);
     }
 
     public <T>T tplOne(T entity){
-        return (T) baseDao.templateOne(entity);
+        return  sqlManager.templateOne(entity);
     }
 
     public List<T> tpl(T entity,int start,int size){
-        return baseDao.template(entity,start,size);
+        return sqlManager.template(entity,start,size);
     }
 
     public long tplCount(T entity){
-        return baseDao.templateCount(entity);
+        return sqlManager.templateCount(entity);
     }
 
-    public void page(PageQuery<T> pageQuery){
-        baseDao.templatePage(pageQuery);
-    }
 
     public <T> PageQuery<T> page(String sqlId,Class<T> clazz,PageQuery<T> pageQuery ){
         return sqlManager.pageQuery(sqlId,clazz,pageQuery);
     }
 
     public T one(Object id){
-        return (T) baseDao.single(id);
+        return (T) sqlManager.single(getTClass(),id);
     }
 
     public long count(){
-        return baseDao.allCount();
+        return sqlManager.allCount(getTClass());
     }
     @Transactional
     public void insert(T entity){
         setCreateTime(entity);
-        baseDao.insert(entity);
+        sqlManager.insert(entity);
     }
     @Transactional
     public void insertAutoKey(T entity){
         setCreateTime(entity);
-        baseDao.insert(entity,true);
+        sqlManager.insert(entity,true);
     }
     @Transactional
     public void insertTpl(T entity){
         setCreateTime(entity);
-        baseDao.insertTemplate(entity);
+        sqlManager.insertTemplate(entity);
     }
     @Transactional
     public void inserTplAutoKey(T entity){
         setCreateTime(entity);
-        baseDao.insertTemplate(entity,true);
+        sqlManager.insertTemplate(entity,true);
     }
     @Transactional
     public void insertBatch(List<T> entitys){
         entitys.stream().forEach(entity->setCreateTime(entity));
-        baseDao.insertBatch(entitys);
-    }
-    @Transactional
-    public KeyHolder insertReturnKey(T entity){
-        setCreateTime(entity);
-        return baseDao.insertReturnKey(entity);
+        sqlManager.insertBatch(getTClass(),entitys);
     }
     @Transactional
     public int update(T entity){
         setUpdateTime(entity);
-        return baseDao.updateById(entity);
+        return sqlManager.updateById(entity);
     }
     @Transactional
     public int updateTplById(T entity){
         setUpdateTime(entity);
-        return baseDao.updateTemplateById(entity);
+        return sqlManager.updateTemplateById(entity);
     }
 
     /**
@@ -126,11 +115,11 @@ public abstract class BaseService<T> {
      */
     @Transactional
     public int del(Object id){
-        return  baseDao.deleteById(id);
+        return  sqlManager.deleteById(getTClass(),id);
     }
 
     public T lock(Object id){
-        return (T) baseDao.lock(id);
+        return (T) sqlManager.lock(getTClass(),id);
     }
 
     private void setCreateTime(T entity){

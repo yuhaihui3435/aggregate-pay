@@ -1,12 +1,12 @@
 package com.xtf.aggregatepay.entity;
-import java.math.*;
-import java.util.Date;
-import java.sql.Timestamp;
+
+import lombok.experimental.Tolerate;
 import org.beetl.sql.core.annotatoin.Table;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 
 /* 
@@ -23,7 +23,7 @@ public class MerBankInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	/*
 	ID
 	*/
-	@NotNull(message = "商户ID不能为空")
+
 	private Integer merId ;
 	/*
 	乐观锁
@@ -113,7 +113,7 @@ public class MerBankInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	更新时间
 	*/
 	private Date updatedTime ;
-	
+	@Tolerate
 	public MerBankInfo() {
 	}
 	

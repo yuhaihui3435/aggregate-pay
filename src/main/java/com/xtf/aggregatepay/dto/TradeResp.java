@@ -23,4 +23,5 @@ public class TradeResp extends HttpResp {
     private String tradeAmount;
     private String merOrder;
     private String merchantNo;
+    private String orderStatus;
 }

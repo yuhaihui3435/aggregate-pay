@@ -13,9 +13,18 @@
             timeToLiveSeconds="60"
             memoryStoreEvictionPolicy="LFU" />
     <cache
-            name="DictItems"
+            name="DictItem"
             eternal="true"
             maxElementsInMemory="5000"
+            overflowToDisk="true"
+            diskPersistent="false"
+            timeToIdleSeconds="0"
+            timeToLiveSeconds="60"
+            memoryStoreEvictionPolicy="LFU" />
+    <cache
+            name="ApCode"
+            eternal="true"
+            maxElementsInMemory="200"
             overflowToDisk="true"
             diskPersistent="false"
             timeToIdleSeconds="0"

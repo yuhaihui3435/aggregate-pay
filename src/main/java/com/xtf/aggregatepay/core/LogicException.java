@@ -24,15 +24,14 @@ public class LogicException extends RuntimeException {
     }
 
     public LogicException(String errCode, String errMsg) {
+        super(errMsg);
         this.errCode = errCode;
         this.errMsg=errMsg;
-        logger.error("系统遇到如下异常，异常码：{}>>>异常信息：{}", errCode, errMsg);
     }
 
     public LogicException(String errMsg) {
         this.errCode="999999";
         this.errMsg=errMsg;
-        logger.error("系统遇到如下异常，异常码：{}>>>异常信息：{}", errCode, errMsg);
     }
 
     public String getPrettyExceptionMsg(){

@@ -2,16 +2,19 @@ package com.xtf.aggregatepay.handler;
 
 import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.core.LogicException;
-import com.xtf.aggregatepay.core.ValidationException;
 import com.xtf.aggregatepay.dto.ApiResp;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartException;
+
+import javax.validation.ValidationException;
 
 /**
  * 简介
@@ -32,16 +35,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Log4j2
 public class GlobalExceptionHandler {
 
-    /**
-     * 处理所有不可知的异常
-     * @param e
-     * @return
-     */
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseBody
-    public ApiResp handleException(Exception e){
-        log.error("系统错误：异常信息为>>{}",e.getMessage());
-        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg("系统错误:"+e.getMessage()).build();
+    public ApiResp handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        log.error("缺少请求参数 ${}", e);
+        return  ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg("缺少请求参数>>"+e.getMessage()).build();
     }
 
     /**
@@ -52,7 +50,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(LogicException.class)
     @ResponseBody
     ApiResp handleBusinessException(LogicException e){
-        log.error("系统业务操作失败：异常信息>>{}",e.getMessage());
+        log.error("系统业务操作失败：异常编号 {} 异常信息 {}",e.getErrCode(),e.getMessage());
         return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(e.getPrettyExceptionMsg()).build();
     }
 
@@ -77,7 +75,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value =BindException.class)
     @ResponseBody
-    public ApiResp handleBindException(BindException e) throws BindException {
+    public ApiResp handleBindException(BindException e)  {
         // ex.getFieldError():随机返回一个对象属性的异常信息。如果要一次性返回所有对象属性异常信息，则调用ex.getAllErrors()
         log.error("数据绑定失败：异常信息>>{}",e.getMessage());
         FieldError fieldError = e.getFieldError();
@@ -87,11 +85,31 @@ public class GlobalExceptionHandler {
         return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(sb.toString()).build();
     }
 
+
     @ExceptionHandler(value =ValidationException.class)
     @ResponseBody
-    public ApiResp handleValidationException(ValidationException e) throws BindException {
-        log.error("手动执行数据校验：校验未通过，校验结果为>>{}",e.getMessage());
+    public ApiResp handleValidationException(ValidationException e) {
+        log.error("数据校验：校验未通过，校验结果为>>{}",e.getMessage());
         return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(e.getMessage()).build();
+    }
+
+    /**
+     * 处理所有不可知的异常
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public ApiResp handleException(Exception e){
+        log.error("系统错误：异常信息为>>{}",e.getMessage());
+        e.printStackTrace();
+        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg("系统错误了，请联系管理员！").build();
+    }
+    @ExceptionHandler(value =MultipartException.class)
+    @ResponseBody
+    public ApiResp handleMultipartException(MultipartException multipartException){
+        log.error("上传文件过大");
+        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg("上传的文件过大，单个文件不要超过1MB,一次上传不能超过10MB").build();
     }
 
 

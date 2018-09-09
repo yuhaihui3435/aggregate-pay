@@ -96,10 +96,38 @@ public class TradeDataService extends BaseService<TradeData> {
         return tradeData;
     }
 
+    /**
+     * 依据商户号，订单号，交易金额查询订单
+     * @param merNo
+     * @param merOrder
+     * @param amount
+     * @return
+     */
     public TradeData queryByMerchantNoAndMerOrderAndAmount(String merNo,String merOrder,String amount){
         return tplOne(TradeData.builder().merOrder(merOrder).merchantNo(merNo).tradeAmount(amount).build());
     }
+
+    /**
+     * 通知下游客户交易结果
+     * @param map
+     */
     public void notifyDown(Map map){
         tradeClient.downCallback(map);
     }
+
+    /**
+     * 订单状态查询
+     * @param tradeData
+     * @return
+     */
+    public TradeData queryOrderStatus(TradeData tradeData){
+        log.info("订单状态查询，商户号 ${} ,订单号 ${}",tradeData.getMerchantNo(),tradeData.getMerOrder());
+        String param=JSONObject.toJSONString(tradeData);
+        TradeResp tradeResp=tradeClient.queryOrderStatus(param);
+        tradeData.setOrderStatus(tradeResp.getOrderStatus());
+        updateTplById(tradeData);
+        log.info("订单状态查询，商户号 ${} ,订单号 ${}，订单状态为 ${}",tradeData.getMerchantNo(),tradeData.getMerOrder(),tradeData.getOrderStatus());
+        return tradeData;
+    }
+
 }

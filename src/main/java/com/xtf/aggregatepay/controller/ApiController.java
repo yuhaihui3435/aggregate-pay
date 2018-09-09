@@ -1,5 +1,6 @@
 package com.xtf.aggregatepay.controller;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.xtf.aggregatepay.Consts;
@@ -18,11 +19,10 @@ import com.xtf.aggregatepay.util.ValidationUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import sun.rmi.runtime.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 @Log4j2
+@Controller
 @RequestMapping(value = "/api")
 public class ApiController extends BaseController{
     @Autowired
@@ -135,8 +136,15 @@ public class ApiController extends BaseController{
      * @return
      * @throws IOException
      */
+    @RequestMapping(value ="/addMerInfo")
+    @ResponseBody
     public ApiResp<Object> addMerAllInfo(@RequestParam("files") MultipartFile[] files,ApiReq apiReq) throws IOException {
         String json=apiReq.getJsonData();
+
+        //必须上传 营业执照照片，身份证正面，身份证背面
+        if(files==null||files.length<3){
+            throw new LogicException("营业执照、法人身份证正面、法人身份证背面照片必传");
+        }
         log.info("商户全部信息:${}",json);
         String req_sign=apiReq.getSign();
         JSONObject jsonObject=JSONObject.parseObject(json);
@@ -144,6 +152,8 @@ public class ApiController extends BaseController{
         MerBankInfo merBankInfo=jsonObject.getObject("merBankInfo",MerBankInfo.class);
         String ac=merInfo.getApCode();
         ApCode apCode=(ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(),ac);
+        if(apCode==null)throw new LogicException("无效的ApCode");
+        merInfo.setChannelCode(apCode.getChannelCode());
         //报文一致性检查
         String sign=Sha256.sha256ByAgentKey(json,apCode.getApKey());
         if(!req_sign.equals(sign)){
@@ -166,7 +176,7 @@ public class ApiController extends BaseController{
         if(mertype==null)throw new LogicException("商户类型不存在，应该为business或者personal");
         dictItem=(DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),merInfo.getCustomMccType());
         if(dictItem==null)throw new LogicException("商户行业编码不存在");
-        if(!APUtil.isValidDateYYYYMMDD(merInfo.getLegalIdCardValidityPeroid()))throw new LogicException("身份证有效期结束日期格式不正确");
+        if(!APUtil.isValidDateYYYYMMDD(merInfo.getIdCardValidityPeroid()))throw new LogicException("身份证有效期结束日期格式不正确");
         if(!APUtil.isValidDateYYYYMMDD(merInfo.getBusLicenseValidityPeroid()))throw new LogicException("营业执照有效期结束日期格式不正确");
         Consts.ACCTYPE acctype=Consts.ACCTYPE.valueOf(merBankInfo.getAccType());
         if(acctype==null)throw new LogicException("商户银行卡账户类型不存在，请填写TO_PUBLIC或者TO_PRIVATE");
@@ -188,10 +198,11 @@ public class ApiController extends BaseController{
             log.info("上传的图片为>>>"+filename);
             if(picType==null)throw new LogicException("上传的照片名称不符合业务规则");
             prefix=filename.substring(filename.lastIndexOf("."));
-            pic=picPath+StrUtil.uuid()+"."+prefix;
-            File excelFile = new File(pic);
-            multipartFile.transferTo(excelFile);
-            pId=merchantClient.uploadMerPic(excelFile);
+            pic=picPath+StrUtil.uuid()+prefix;
+            File picFile = FileUtil.file(pic);
+            if(!picFile.exists())picFile.createNewFile();
+            multipartFile.transferTo(picFile);
+            pId=merchantClient.uploadMerPic(picFile);
             picTypeStringMap.put(picType,pId);
             merPic.setPicPath(pic);
             merPic.setPicId(pId);
@@ -216,6 +227,7 @@ public class ApiController extends BaseController{
      * @return
      */
     @PostMapping(value = "/queryMerStatus")
+    @ResponseBody
     public MerInfo queryMerStatus(@RequestParam String merNum){
         return merInfoService.queryMerInfoStatus(merNum);
     }
@@ -226,6 +238,7 @@ public class ApiController extends BaseController{
      * @return
      */
     @PostMapping(value = "/zscan")
+    @ResponseBody
     public ApiResp zscanTrade(ApiReq apiReq){
         String json=apiReq.getJsonData();
         log.info("交易数据:${}",json);
@@ -255,6 +268,11 @@ public class ApiController extends BaseController{
         return ApiResp.builder().respCode(Consts.SYS_COMMON_SUCCESS_CODE).respMsg("主扫交易成功").jsonData(jsonObject).sign(ret_sign).build();
 
     }
+
+    /**
+     * 交易回调处理
+     * @param map
+     */
     @PostMapping(value = "/tradeCallback")
     public void tradeCallback(@RequestBody Map<String,String> map){
         String merOrder=map.get("merOrder");
@@ -289,8 +307,33 @@ public class ApiController extends BaseController{
             map.put("sign",ret_sign);
             tradeDataService.notifyDown(map);
         }
+    }
 
+    /**
+     * 交易状态查询
+     * @param merNo 商户号
+     * @param merOrder  订单号
+     * @param amount    交易金额
+     * @return
+     */
+    @RequestMapping(value = "/queryOrderStatus")
+    @ResponseBody
+    public TradeData queryOrderStatus(@RequestParam String merNo,@RequestParam String merOrder,@RequestParam String amount){
+        log.info("客户端开始进行交易状态查询，商户号为 ${} ,订单号为 ${},交易金额为 ${}",merNo,merOrder,amount);
+        TradeData tradedata=tradeDataService.queryByMerchantNoAndMerOrderAndAmount(merNo,merOrder,amount);
+        if(StrUtil.isNotBlank(tradedata.getOrderStatus())){
+            if(tradedata.getOrderStatus().equals(Consts.TRADE_STATUS.PROCESSING.getKey())){
+                log.info("调用通道进行交易状态同步");
+                TradeData tradeData=tradeDataService.queryOrderStatus(tradedata);
+                log.info("同步后交易状态为 ${}",tradeData.getOrderStatus());
+            }
+        }
+        return tradedata;
+    }
 
+    @RequestMapping(value = "test")
+    public void test(@RequestBody String str){
+        log.info(str);
     }
 
 }

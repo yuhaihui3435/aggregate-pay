@@ -69,4 +69,26 @@ public class TradeClient {
         }
     }
 
+
+    public TradeResp queryOrderStatus(String param){
+        String agentKey=APUtil.getAgentKey();
+        log.info("开始向xyf发送订单状态查询，数据内容为 ${}",param);
+        HttpResponse httpResponse=HttpRequest.post(scanChannelUrl).body(param).timeout(requestTimeout).execute();
+        log.info("请求成功，返回数据为："+httpResponse.body());
+        if(httpResponse.getStatus()!=200){
+            log.error("请求响应状态为："+httpResponse.getStatus()+",请求失败");
+            throw new LogicException("主扫交易请求失败");
+        }else{
+            String retBody=httpResponse.body();
+            String retSign=Sha256.sha256ByAgentKey(retBody,agentKey);
+            TradeResp httpResp=JSONObject.parseObject(httpResponse.body(),TradeResp.class);
+            if(!retSign.equals(httpResp.getSign()))throw new LoggingException(msgProp.getServerRetSign_err());
+            if(httpResp.getResCode().equals("SUCCESS")){
+                return httpResp;
+            }else{
+                log.info("订单状态查询失败， 错误编号 ${},错误原因 ${}",httpResp.getResCode(),httpResp.getResMsg());
+                throw new LogicException(httpResp.getResCode(),httpResp.getResMsg());
+            }
+        }
+    }
 }
