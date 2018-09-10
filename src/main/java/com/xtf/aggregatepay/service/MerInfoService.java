@@ -107,7 +107,7 @@ public class MerInfoService extends BaseService<MerInfo> {
 
         String agentNum=APUtil.getAgentNum();
         String agentKey=APUtil.getAgentKey();
-        String tradeFlowNo=String.valueOf(System.nanoTime());//交易流水号
+        String tradeFlowNo=String.valueOf(APUtil.getTimeMillisSequence());//交易流水号
         Map<String,Object> param=new HashMap<>();
         param.put("agentNum",agentNum);
         param.put("tradeFlowNo",tradeFlowNo);
