@@ -108,6 +108,6 @@ condition
 sumTradeAmount
 ===
 
-select sum(TRADE_AMOUNT) from TRADE_DATA_T where and MERCHANT_NO=#merNum# and (ORDER_STATUS ='success'
+select sum(TRADE_AMOUNT) from TRADE_DATA_T where  MERCHANT_NO=#merNum# and (ORDER_STATUS ='success'
  or ORDER_STATUS ='processing') and  to_days(TIME_END) = to_days(now())  
 	

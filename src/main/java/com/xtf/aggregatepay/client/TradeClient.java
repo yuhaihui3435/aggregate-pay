@@ -35,7 +35,7 @@ public class TradeClient {
      */
     public TradeResp addTrade(String param){
         String agentKey=APUtil.getAgentKey();
-        log.info("开始向xyf发送主扫请求，数据内容为 ${}",param);
+        log.info("开始向xyf发送主扫请求，数据内容为 {}",param);
         HttpResponse httpResponse=HttpRequest.post(scanChannelUrl).body(param).timeout(requestTimeout).execute();
         log.info("请求成功，返回数据为："+httpResponse.body());
         if(httpResponse.getStatus()!=200){
@@ -43,13 +43,12 @@ public class TradeClient {
             throw new LogicException("主扫交易请求失败");
         }else{
             String retBody=httpResponse.body();
-            String retSign=Sha256.sha256ByAgentKey(retBody,agentKey);
-            TradeResp httpResp=JSONObject.parseObject(httpResponse.body(),TradeResp.class);
-            if(!retSign.equals(httpResp.getSign()))throw new LoggingException(msgProp.getServerRetSign_err());
+            TradeResp httpResp=JSONObject.parseObject(retBody,TradeResp.class);
             if(httpResp.getResCode().equals("SUCCESS")){
+                String retSign=Sha256.sha256ByAgentKey(retBody,agentKey);
+                if(!retSign.equals(httpResp.getSign()))throw new LoggingException(msgProp.getServerRetSign_err());
                 return httpResp;
             }else{
-                log.info("主扫交易处理失败， 错误编号 ${},错误原因 ${}",httpResp.getResCode(),httpResp.getResMsg());
                 throw new LogicException(httpResp.getResCode(),httpResp.getResMsg());
             }
         }
@@ -63,7 +62,7 @@ public class TradeClient {
         log.info("向下游客户发起主扫交易回调处理");
         HttpResponse httpResponse=HttpRequest.post(scanChannelUrl).body(JSONUtil.toJsonStr(map)).timeout(requestTimeout).execute();
         if(httpResponse.getStatus()!=200){
-            log.error("下游交易回调响应失败，响应码 ${}",httpResponse.getStatus() );
+            log.error("下游交易回调响应失败，响应码 {}",httpResponse.getStatus() );
         }else{
             log.info("下游交易回调成功");
         }

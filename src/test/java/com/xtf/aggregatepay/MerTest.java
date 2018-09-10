@@ -74,4 +74,28 @@ public class MerTest {
         log.info(httpResponse.body());
     }
 
+
+    @Test
+    public void sendTrade(){
+        Map<String,String> tradeInfo=new HashMap<>();
+        tradeInfo.put("merchantNo","M23225013781989578057046");
+        tradeInfo.put("merOrder",System.nanoTime()+"");
+        tradeInfo.put("productName","西红柿");
+        tradeInfo.put("tradeAmount","1");
+        tradeInfo.put("callBackUrl","11111");
+        tradeInfo.put("downCallBackUrl","11111");
+        tradeInfo.put("bizType","WECHATPAY");
+        String sign=Sha256.sha256ByAgentKey(tradeInfo,"BDCFDFDFDFSFUIUOIURIUEREWFFD");
+        String param_str= JSONObject.toJSONString(tradeInfo);
+        HttpResponse httpResponse= HttpRequest.post("http://localhost:9000/api/zscan").form("jsonData",param_str).form("sign",sign).execute();
+        log.info(httpResponse.body());
+
+    }
+    @Test
+    public void queryMerStatus(){
+        Map<String,String> tradeInfo=new HashMap<>();
+        tradeInfo.put("merNum","M23225013781989578057046");
+        HttpResponse httpResponse= HttpRequest.post("http://localhost:9000/api/queryMerStatus").form("merNum","M23225013781989578057046").execute();
+        log.info(httpResponse.body());
+    }
 }

@@ -79,19 +79,19 @@ public class TradeDataService extends BaseService<TradeData> {
         BigDecimal tradeAmount=new BigDecimal(tradeData.getTradeAmount()).divide(new BigDecimal(100));
         BigDecimal merSumAmountNow=merSumTradeAmountNow(merInfo.getMercNum());
         if(tradeAmount.compareTo(maxAmount)!=-1)throw new LogicException("单笔交易金额超过上限,上限为:"+maxAmount);
-        if(merSumAmountNow.compareTo(maxAmountOfDay)!=-1)throw new LogicException("交易金额已经超过今日上限,上限为："+maxAmountOfDay);
+        if(merSumAmountNow!=null&&merSumAmountNow.compareTo(maxAmountOfDay)!=-1)throw new LogicException("交易金额已经超过今日上限,上限为："+maxAmountOfDay);
         if(Consts.BIZ_TYPE.valueOf(tradeData.getBizType())==null)throw new LogicException("交易方式错误");
         //设置交易相关数据
         log.info("开始交易数据整理");
         tradeData.setCallBackUrl(tradeCallbackUrl);
         tradeData.setTradeType(Consts.TRADE_TYPE.XXZSCAN.getVal());
         tradeData.setAgentNo(APUtil.getAgentNum());
-        String sign=Sha256.sha256ByAgentKey(tradeData,APUtil.getAgentKey());
-        JSONObject jsonObject=(JSONObject) JSON.toJSON(tradeData);
-        jsonObject.put("sign",sign);
-        String param=jsonObject.toJSONString();
-        log.info("订单号 ${} ，交易数据为:[${}]",tradeData.getMerOrder(),param);
-        TradeResp tradeResp=tradeClient.addTrade(param);
+        String str=JSON.toJSONString(tradeData);
+        Map<String,String> param=JSON.parseObject(str,Map.class);
+        String sign=Sha256.sha256ByAgentKey(param,APUtil.getAgentKey());
+        param.put("sign",sign);
+        log.info("订单号 {} ，交易数据为:{}",tradeData.getMerOrder(),param);
+        TradeResp tradeResp=tradeClient.addTrade(JSON.toJSONString(param));
         BeanUtil.copyProperties(tradeResp,tradeData,CopyOptions.create().setIgnoreNullValue(true));
         insertAutoKey(tradeData);
         return tradeData;

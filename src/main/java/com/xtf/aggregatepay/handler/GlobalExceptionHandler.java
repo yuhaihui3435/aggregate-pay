@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(LogicException.class)
     @ResponseBody
     ApiResp handleBusinessException(LogicException e){
-        log.error("系统业务操作失败：异常编号 {} 异常信息 {}",e.getErrCode(),e.getMessage());
+        log.error("系统业务操作失败：异常编号 {} 异常信息 {}",e.getErrCode(),e.getErrMsg());
         return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(e.getPrettyExceptionMsg()).build();
     }
 

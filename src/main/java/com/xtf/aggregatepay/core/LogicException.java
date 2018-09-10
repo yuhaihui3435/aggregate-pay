@@ -30,6 +30,7 @@ public class LogicException extends RuntimeException {
     }
 
     public LogicException(String errMsg) {
+        super(errMsg);
         this.errCode="999999";
         this.errMsg=errMsg;
     }

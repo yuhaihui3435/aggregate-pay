@@ -7,10 +7,7 @@ import lombok.Builder;
 import lombok.experimental.Tolerate;
 import org.beetl.sql.core.annotatoin.Table;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.*;
 
 
 /* 
@@ -41,7 +38,7 @@ public class TradeData extends com.xtf.aggregatepay.core.BaseEntity  {
 	收款方式类型
 	*/
 	@NotBlank(message = "收款方式必填")
-	@Max(value = 32,message = "收款方式最大长度32")
+	@Size(max = 32,message = "收款方式最大长度32")
 	private String bizType ;
 	/*
 	上游回调通知地址
@@ -67,7 +64,7 @@ public class TradeData extends com.xtf.aggregatepay.core.BaseEntity  {
 	下游回调通知地址
 	*/
 	@NotBlank(message = "交易结果通知地址必填")
-	@Max(value = 512,message = "交易结果通知地址最大长度512")
+	@Size(max = 512,message = "交易结果通知地址最大长度512")
 	private String downCallBackUrl ;
 	/*
 	上游交易完成时间
@@ -82,7 +79,7 @@ public class TradeData extends com.xtf.aggregatepay.core.BaseEntity  {
 	订单编号
 	*/
 	@NotBlank(message = "订单号必填")
-	@Max(value = 32,message = "订单编号最大32")
+	@Size(max= 32,message = "订单编号最大32")
 	private String merOrder ;
 	/*
 	订单状态-success:交易成功,sacn_pay_faild:交易失败,processing:交易处理中,closefailure:交易关闭,refund_success:交易已退款
@@ -95,7 +92,7 @@ public class TradeData extends com.xtf.aggregatepay.core.BaseEntity  {
 	/*
 	产品名
 	*/
-	@Max(value = 100,message = "产品名最大不超过100")
+	@Size(max = 100,min=1,message = "产品名最大不超过100")
 	private String productName ;
 	/*
 	应答吗
