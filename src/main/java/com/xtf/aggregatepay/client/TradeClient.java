@@ -58,7 +58,7 @@ public class TradeClient {
      */
     public void downCallback(String downCallbackUrl,Map map){
         log.info("向下游客户发起主扫交易回调处理");
-        HttpResponse httpResponse=HttpRequest.post(downCallbackUrl).form("merNo",map.get("merNo")).form("merOrder",map.get("merOrder")).form("orderStatus",map.get("orderStatus")).timeout(requestTimeout).execute();
+        HttpResponse httpResponse=HttpRequest.post(downCallbackUrl).form(map).timeout(requestTimeout).execute();
         if(httpResponse.getStatus()!=200){
             log.error("下游交易回调响应失败，响应码 {}",httpResponse.getStatus() );
         }else{

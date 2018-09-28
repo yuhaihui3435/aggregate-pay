@@ -359,6 +359,9 @@ public class ApiController extends BaseController {
             map.put("merNo",tradeData.getMerchantNo());
             map.put("merOrder",tradeData.getMerOrder());
             map.put("orderStatus",tradeData.getOrderStatus());
+            ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), merInfo.getApCode());
+            String resp_sign=Sha256.sha256ByAgentKey(map,apCode.getApKey());
+            map.put("sign",resp_sign);
             tradeDataService.notifyDown(downCallbackUrl,map);
         }
     }
