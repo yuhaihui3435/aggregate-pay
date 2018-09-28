@@ -2,7 +2,6 @@ package com.xtf.aggregatepay.util;
 
 import org.hibernate.validator.HibernateValidator;
 
-
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.ValidationException;

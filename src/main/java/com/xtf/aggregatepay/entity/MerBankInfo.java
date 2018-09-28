@@ -5,7 +5,6 @@ import org.beetl.sql.core.annotatoin.Table;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 
@@ -13,7 +12,7 @@ import java.util.Date;
 * 
 * gen by beetlsql 2018-09-04
 */
-@Table(name="aggregate_pay_db.MER_BANK_INFO_T")
+@Table(name="MER_BANK_INFO_T")
 public class MerBankInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	
 	/*

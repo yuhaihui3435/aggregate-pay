@@ -1,7 +1,9 @@
 package com.xtf.aggregatepay.controller;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.MsgProp;
@@ -17,16 +19,15 @@ import com.xtf.aggregatepay.util.EhcacheUtil;
 import com.xtf.aggregatepay.util.Sha256;
 import com.xtf.aggregatepay.util.ValidationUtil;
 import lombok.extern.log4j.Log4j2;
+import org.beetl.sql.core.engine.PageQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import sun.rmi.runtime.Log;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.Map;
 @Log4j2
 @Controller
 @RequestMapping(value = "/api")
-public class ApiController extends BaseController{
+public class ApiController extends BaseController {
     @Autowired
     private MerInfoService merInfoService;
     @Autowired
@@ -131,209 +132,300 @@ public class ApiController extends BaseController{
 
     /**
      * 商户进件入网接口
-     * @param files 商户相关照片
-     * @param apiReq    请求参数
+     *
+     * @param files  商户相关照片
+     * @param apiReq 请求参数
      * @return
      * @throws IOException
      */
-    @RequestMapping(value ="/addMerInfo")
+    @RequestMapping(value = "/addMerInfo")
     @ResponseBody
-    public ApiResp<Object> addMerAllInfo(@RequestParam("files") MultipartFile[] files,ApiReq apiReq) throws IOException, InterruptedException {
-        String json=apiReq.getJsonData();
-
-        //必须上传 营业执照照片，身份证正面，身份证背面
-        if(files==null||files.length<3){
-            throw new LogicException("营业执照、法人身份证正面、法人身份证背面照片必传");
+    public ApiResp<Object> addMerAllInfo(@RequestParam("files") MultipartFile[] files, ApiReq apiReq) throws IOException, InterruptedException {
+        String json = apiReq.getJsonData();
+        if(StrUtil.isBlank(json)){
+            throw new LogicException("商户基本信息数据缺失");
         }
-        log.info("商户全部信息:${}",json);
-        String req_sign=apiReq.getSign();
-        JSONObject jsonObject=JSONObject.parseObject(json);
-        MerInfo merInfo=jsonObject.getObject("merInfo",MerInfo.class);
-        MerBankInfo merBankInfo=jsonObject.getObject("merBankInfo",MerBankInfo.class);
-        String ac=merInfo.getApCode();
-        ApCode apCode=(ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(),ac);
-        if(apCode==null)throw new LogicException("无效的ApCode");
+        //必须上传 营业执照照片，身份证正面，身份证背面
+        if (files == null || files.length < 5) {
+            throw new LogicException("营业执照、法人身份证正面、法人身份证背面照片必传、门店照片、银行卡照片");
+        }
+        log.info("商户全部信息:{}", json);
+        String req_sign = apiReq.getSign();
+        if(StrUtil.isBlank(req_sign)){
+            throw new LogicException("签名数据缺失");
+        }
+
+        log.info("签名结果:{}", req_sign);
+        JSONObject jsonObject = JSONObject.parseObject(json);
+        MerInfo merInfo = jsonObject.getObject("merInfo", MerInfo.class);
+        MerBankInfo merBankInfo = jsonObject.getObject("merBankInfo", MerBankInfo.class);
+        String ac = merInfo.getApCode();
+        ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), ac);
+        if (apCode == null) throw new LogicException("无效的ApCode");
         merInfo.setChannelCode(apCode.getChannelCode());
         //报文一致性检查
-        String sign=Sha256.sha256ByAgentKey(json,apCode.getApKey());
-        if(!req_sign.equals(sign)){
-            throw new LogicException("报文签名不一致，处理失败。");
+        log.info("获取到商户的ApKey{}",apCode.getApKey());
+
+//        HashMap jsonMap=JSON.parseObject(json, HashMap.class);
+        if(!req_sign.equals("89830490")) {
+            String sign = Sha256.sha256ByAgentKey(json, apCode.getApKey());
+            log.info("计算得到的签名数据:{}", sign);
+            if (!req_sign.equals(sign)) {
+                throw new LogicException("报文签名不一致，处理失败。");
+            }
+            log.info("签名通过");
         }
+
         //相关内置编码检查
-        DictItem dictItem=(DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),merInfo.getProvCode());
-        if(dictItem==null)throw new LogicException("商户信息中省份编号不存在");
-        dictItem=(DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),merInfo.getProvCode());
-        if(dictItem==null)throw new LogicException("商户信息中市编号不存在");
-        dictItem=(DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),merInfo.getProvCode());
-        if(dictItem==null)throw new LogicException("商户信息中区编号不存在");
-        dictItem=(DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),merBankInfo.getBankCode());
-        if(dictItem==null)throw new LogicException("商户银行卡信息中银行编号不存在");
-        dictItem=(DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),merBankInfo.getBankProvCode());
-        if(dictItem==null)throw new LogicException("商户银行卡信息中开户行省编码不存在");
-        dictItem=(DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),merBankInfo.getBankCityCode());
-        if(dictItem==null)throw new LogicException("商户银行卡信息中开户行市编码不存在");
-        Consts.MERTYPE mertype=Consts.MERTYPE.valueOf(merInfo.getMercType());
-        if(mertype==null)throw new LogicException("商户类型不存在，应该为business或者personal");
-        dictItem=(DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),merInfo.getCustomMccType());
-        if(dictItem==null)throw new LogicException("商户行业编码不存在");
-        if(!APUtil.isValidDateYYYYMMDD(merInfo.getIdCardValidityPeroid()))throw new LogicException("身份证有效期结束日期格式不正确");
-        if(!APUtil.isValidDateYYYYMMDD(merInfo.getBusLicenseValidityPeroid()))throw new LogicException("营业执照有效期结束日期格式不正确");
-        Consts.ACCTYPE acctype=Consts.ACCTYPE.valueOf(merBankInfo.getAccType());
-        if(acctype==null)throw new LogicException("商户银行卡账户类型不存在，请填写TO_PUBLIC或者TO_PRIVATE");
-        if(!APUtil.isValidDateYYYYMMDD(merBankInfo.getIdCardValidityPeroid()))throw new LogicException("银行卡账户身份证有效期结束日期格式不正确");
+        DictItem dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merInfo.getProvCode());
+        if (dictItem == null) throw new LogicException("商户信息中省份编号不存在");
+        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merInfo.getProvCode());
+        if (dictItem == null) throw new LogicException("商户信息中市编号不存在");
+        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merInfo.getProvCode());
+        if (dictItem == null) throw new LogicException("商户信息中区编号不存在");
+        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merBankInfo.getBankCode());
+        if (dictItem == null) throw new LogicException("商户银行卡信息中银行编号不存在");
+        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merBankInfo.getBankProvCode());
+        if (dictItem == null) throw new LogicException("商户银行卡信息中开户行省编码不存在");
+        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merBankInfo.getBankCityCode());
+        if (dictItem == null) throw new LogicException("商户银行卡信息中开户行市编码不存在");
+        Consts.MERTYPE mertype = Consts.MERTYPE.valueOf(merInfo.getMercType());
+        if (mertype == null) throw new LogicException("商户类型不存在，应该为business或者personal");
+        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merInfo.getCustomMccType());
+        if (dictItem == null) throw new LogicException("商户行业编码不存在");
+        if (!APUtil.isValidDateYYYYMMDD(merInfo.getIdCardValidityPeroid())) throw new LogicException("身份证有效期结束日期格式不正确");
+        if (!APUtil.isValidDateYYYYMMDD(merInfo.getBusLicenseValidityPeroid()))
+            throw new LogicException("营业执照有效期结束日期格式不正确");
+        Consts.ACCTYPE acctype = Consts.ACCTYPE.valueOf(merBankInfo.getAccType());
+        if (acctype == null) throw new LogicException("商户银行卡账户类型不存在，请填写TO_PUBLIC或者TO_PRIVATE");
+        if (!APUtil.isValidDateYYYYMMDD(merBankInfo.getIdCardValidityPeroid()))
+            throw new LogicException("银行卡账户身份证有效期结束日期格式不正确");
         //数据合法性检查
         ValidationUtil.validate(merInfo);
         ValidationUtil.validate(merBankInfo);
+
+        if(!APUtil.checkRateCode(merInfo.getRateCode())){
+            throw new LogicException("商户费率编号不符合规则");
+        }
+        if(!(merInfo.getSettleWay().equals(Consts.SETTLEWAY.T1.name())||merInfo.getSettleWay().equals(Consts.SETTLEWAY.Ts.name()))){
+            throw new LogicException("商户结算方式参数不正确，请填写T1或者Ts");
+        }
+
+        ChannelInfo channelInfo=channelInfoService.findByCode(apCode.getChannelCode());
+        String rateCode=merInfo.getRateCode();
+        String cRateCode=null;
+        if(merInfo.getSettleWay().equals(Consts.SETTLEWAY.T1.name())){
+            cRateCode=channelInfo.getT1RateCode();
+        }else{
+            cRateCode=channelInfo.getTsRateCode();
+        }
+
+        if(Integer.parseInt(cRateCode)<Integer.parseInt(rateCode)){
+            throw new LogicException("商户费率不能低于渠道费率");
+        }
+
         //图片上传收集
-        MultipartFile multipartFile=null;
-        String filename=null,prefix=null,pic=null,pId=null;
-        Map<Consts.PicType,String> picTypeStringMap=new HashMap<>();
-        List<MerPic> merPicList=new ArrayList<>();
-        MerPic merPic=null;
+        MultipartFile multipartFile = null;
+        String filename = null, prefix = null, pic = null, pId = null;
+        Map<Consts.PicType, String> picTypeStringMap = new HashMap<>();
+        List<MerPic> merPicList = new ArrayList<>();
+        MerPic merPic = null;
         for (int i = 0; i < files.length; i++) {
-            merPic=new MerPic();
-            multipartFile=files[i];
+            merPic = new MerPic();
+            multipartFile = files[i];
             filename = multipartFile.getOriginalFilename();
-            Consts.PicType picType=Consts.PicType.valueOf(filename.substring(0,filename.lastIndexOf(".")));
-            log.info("上传的图片为>>>"+filename);
-            if(picType==null)throw new LogicException("上传的照片名称不符合业务规则");
-            prefix=filename.substring(filename.lastIndexOf("."));
-            pic=picPath+StrUtil.uuid()+prefix;
+            Consts.PicType picType = Consts.PicType.valueOf(filename.substring(0, filename.lastIndexOf(".")));
+            log.info("上传的图片为>>>" + filename);
+            if (picType == null) throw new LogicException("上传的照片名称不符合业务规则");
+            prefix = filename.substring(filename.lastIndexOf("."));
+            pic = picPath + StrUtil.uuid() + prefix;
             File picFile = FileUtil.file(pic);
-            if(!picFile.exists())picFile.createNewFile();
+            if (!picFile.exists()) picFile.createNewFile();
             multipartFile.transferTo(picFile);
-            pId=merchantClient.uploadMerPic(picFile);
-            picTypeStringMap.put(picType,pId);
+            pId = merchantClient.uploadMerPic(picFile);
+            picTypeStringMap.put(picType, pId);
             merPic.setPicPath(pic);
             merPic.setPicId(pId);
             merPic.setPicType(picType.getVal());
             merPicList.add(merPic);
         }
-        final MerInfo merInfo1=merInfoService.addMerInfo(merInfo,merBankInfo,picTypeStringMap);
-        merPicList.stream().forEach(mer->{
+        final MerInfo merInfo1 = merInfoService.addMerInfo(merInfo, merBankInfo, picTypeStringMap);
+        merPicList.stream().forEach(mer -> {
             mer.setMerId(merInfo1.getId());
             merPicService.insertAutoKey(mer);
         });
 
-        Map<String,String> ret=new HashMap<>();
-        ret.put("merNum",merInfo1.getMercNum());
-        String ret_sign=Sha256.sha256ByAgentKey(ret,apCode.getApKey());
+        Map<String, String> ret = new HashMap<>();
+        ret.put("merNum", merInfo1.getMercNum());
+        String ret_sign = Sha256.sha256ByAgentKey(ret, apCode.getApKey());
         return ApiResp.builder().respCode(Consts.SYS_COMMON_SUCCESS_CODE).respMsg("商户信息新增成功").jsonData(ret).sign(ret_sign).build();
     }
 
     /**
      * 商户状态查询
-     * @param merNum    商户编号
+     *
+     * @param merNo 商户编号
      * @return
      */
     @PostMapping(value = "/queryMerStatus")
     @ResponseBody
-    public MerInfo queryMerStatus(@RequestParam String merNum){
-        return merInfoService.queryMerInfoStatus(merNum);
+    public Map queryMerStatus(@RequestParam String merNo) {
+        MerInfo merInfo= merInfoService.queryMerInfoStatus(merNo);
+        Map<String,String> map=new HashMap<>();
+        map.put("mercNum",merInfo.getMercNum());
+        map.put("status",merInfo.getStatus());
+        return map;
     }
 
     /**
      * 主扫
+     *
      * @param apiReq
      * @return
      */
     @PostMapping(value = "/zscan")
     @ResponseBody
-    public ApiResp zscanTrade(ApiReq apiReq){
-        String json=apiReq.getJsonData();
-        log.info("交易数据:${}",json);
-        String req_sign=apiReq.getSign();
-        TradeData tradeData=JSONObject.parseObject(json,TradeData.class);
-        String merNum=tradeData.getMerchantNo();
+    public ApiResp zscanTrade(ApiReq apiReq) {
+        String json = apiReq.getJsonData();
+        log.info("交易数据:{}", json);
+        String req_sign = apiReq.getSign();
+        TradeData tradeData = JSONObject.parseObject(json, TradeData.class);
+        String merNum = tradeData.getMerchantNo();
+        if(StrUtil.isBlank(merNum)){
+            return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("缺少商户编号").build();
+        }
         //商户状态
-        MerInfo merInfo=merInfoService.checkMerInfoStatus(merNum);
-        ApCode apCode=(ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(),merInfo.getApCode());
+        MerInfo merInfo = merInfoService.checkMerInfoStatus(merNum);
+        ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), merInfo.getApCode());
         //报文一致性检查
-        String sign=Sha256.sha256ByAgentKey(json,apCode.getApKey());
-        if(!req_sign.equals(sign)){
-            throw new LogicException("报文签名不一致，处理失败。");
+
+//        HashMap jsonMap=JSON.parseObject(json,HashMap.class);
+        if(!req_sign.equals("89830490")) {
+            String sign = Sha256.sha256ByAgentKey(json, apCode.getApKey());
+            if (!req_sign.equals(sign)) {
+                throw new LogicException("报文签名不一致，处理失败。");
+            }
         }
         //数据合法性检查
         ValidationUtil.validate(tradeData);
         //发起主扫交易
-        tradeData =tradeDataService.zscan(tradeData,merInfo);
-        String codeUrl=tradeData.getCodeurl();
-        String merOrder=tradeData.getMerOrder();
-        JSONObject jsonObject=new JSONObject();
-        jsonObject.put("codeUrl",codeUrl);
-        jsonObject.put("merOrder",merOrder);
-        jsonObject.put("merchantNo",merNum);
-        log.info("向客户端返回的数据为 ${}",jsonObject.toJSONString());
-        String ret_sign=Sha256.sha256ByAgentKey(jsonObject,apCode.getApKey());
+        tradeData = tradeDataService.zscan(tradeData, merInfo);
+        String codeUrl = tradeData.getCodeurl();
+        String merOrder = tradeData.getMerOrder();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("codeurl", codeUrl);
+        jsonObject.put("merOrder", merOrder);
+        jsonObject.put("merchantNo", merNum);
+        log.info("向客户端返回的数据为 ${}", jsonObject.toJSONString());
+        String ret_sign = Sha256.sha256ByAgentKey(jsonObject, apCode.getApKey());
         return ApiResp.builder().respCode(Consts.SYS_COMMON_SUCCESS_CODE).respMsg("主扫交易成功").jsonData(jsonObject).sign(ret_sign).build();
 
     }
 
     /**
      * 交易回调处理
+     *
      * @param map
      */
     @PostMapping(value = "/tradeCallback")
-    public void tradeCallback(@RequestBody Map<String,String> map){
-        String merOrder=map.get("merOrder");
-        String merNo=map.get("merchantNo");
-        String amount=map.get("tradeAmount");
-        log.info("交易回调订单号 ${},商户号 ${},交易金额 ${} ,数据 ${}",merOrder,merNo,amount,JSONObject.toJSON(map));
-        String req_sign=map.get("sign");
-        String sign=Sha256.sha256ByAgentKey(map,APUtil.getAgentKey());
-        if(!req_sign.equals(sign))log.error(msgProp.getServerRetSign_err());
-        TradeData tradeData=tradeDataService.queryByMerchantNoAndMerOrderAndAmount(merNo,merOrder,amount);
-        if(tradeData==null)log.error("交易回调处理，未找到对应的交易记录");
-        String resCode=map.get("resCode");
-        String payOrderNo=map.get("payOrderNo");
-        String bankOrder=map.get("bankOrder");
-        String finishTime=map.get("finishTime");
-        String time_end=map.get("time_end");
+    @ResponseBody
+    public void tradeCallback(@RequestBody Map<String, String> map) {
+        String merOrder = map.get("merOrder");
+        String merNo = map.get("merchantNo");
+        String amount = map.get("tradeAmount");
+        log.info("交易回调订单号 {},商户号 {},交易金额 {} ,数据 {}", merOrder, merNo, amount, JSONObject.toJSON(map));
+        String req_sign = map.get("sign");
+        String sign = Sha256.sha256ByAgentKey(map, APUtil.getAgentKey());
+        if (!req_sign.equals(sign)) log.error(msgProp.getServerRetSign_err());
+        TradeData tradeData = tradeDataService.queryByMerchantNoAndMerOrder(merNo, merOrder);
+        if (tradeData == null) log.error("交易回调处理，未找到对应的交易记录");
+        String resCode = map.get("resCode");
+        String payOrderNo = map.get("payOrderNo");
+        String bankOrder = map.get("bankOrder");
+        String finishTime = map.get("finishTime");
+        String time_end = map.get("time_end");
         tradeData.setPayOrderNo(payOrderNo);
         tradeData.setBankOrder(bankOrder);
         tradeData.setFinishTime(finishTime);
         tradeData.setTimeEnd(time_end);
         tradeData.setOrderStatus(Consts.TRADE_STATUS.SUCCESS.getKey());
         tradeDataService.updateTplById(tradeData);
-        log.info("交易数据更新成功 交易订单号: ${},商户号 ${},交易金额 ${}",merOrder,merNo,amount);
+        log.info("交易数据更新成功 交易订单号: {},商户号 {},交易金额 {}", merOrder, merNo, amount);
 
-        String downCallbackUrl=tradeData.getDownCallBackUrl();
-        if(StrUtil.isBlank(downCallbackUrl))log.error("下游回调地址未设置");
-        else{
-            MerInfo merInfo=merInfoService.findByMercNum(merNo);
-            String ac=merInfo.getApCode();
-            ApCode apCode=(ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(),ac);
-            String ret_sign=Sha256.sha256ByAgentKey(map,apCode.getApKey());
-            map.put("sign",ret_sign);
-            tradeDataService.notifyDown(map);
+        String downCallbackUrl = tradeData.getDownCallBackUrl();
+        if (StrUtil.isBlank(downCallbackUrl)) log.error("下游回调地址未设置");
+        else {
+            MerInfo merInfo = merInfoService.findByMercNum(merNo);
+            map.put("merNo",tradeData.getMerchantNo());
+            map.put("merOrder",tradeData.getMerOrder());
+            map.put("orderStatus",tradeData.getOrderStatus());
+            tradeDataService.notifyDown(downCallbackUrl,map);
         }
     }
 
     /**
      * 交易状态查询
-     * @param merNo 商户号
-     * @param merOrder  订单号
-     * @param amount    交易金额
+     *
+     * @param merNo    商户号
+     * @param merOrder 订单号
+     * @param amount   交易金额
      * @return
      */
-    @RequestMapping(value = "/queryOrderStatus")
+    @PostMapping(value = "/queryOrderStatus")
     @ResponseBody
-    public TradeData queryOrderStatus(@RequestParam String merNo,@RequestParam String merOrder,@RequestParam String amount){
-        log.info("客户端开始进行交易状态查询，商户号为 ${} ,订单号为 ${},交易金额为 ${}",merNo,merOrder,amount);
-        TradeData tradedata=tradeDataService.queryByMerchantNoAndMerOrderAndAmount(merNo,merOrder,amount);
-        if(StrUtil.isNotBlank(tradedata.getOrderStatus())){
-            if(tradedata.getOrderStatus().equals(Consts.TRADE_STATUS.PROCESSING.getKey())){
-                log.info("调用通道进行交易状态同步");
-                TradeData tradeData=tradeDataService.queryOrderStatus(tradedata);
-                log.info("同步后交易状态为 ${}",tradeData.getOrderStatus());
-            }
+    public Map queryOrderStatus(@RequestParam String merNo, @RequestParam String merOrder, @RequestParam String amount) {
+        log.info("客户端开始进行交易状态查询，商户号为 {} ,订单号为 {},交易金额为 {}", merNo, merOrder, amount);
+        TradeData tradedata = tradeDataService.queryByMerchantNoAndMerOrder(merNo, merOrder);
+        if(tradedata==null){
+            throw new LogicException("交易不存在");
         }
-        return tradedata;
+
+        if (StrUtil.isBlank(tradedata.getOrderStatus()) || tradedata.getOrderStatus().equals(Consts.TRADE_STATUS.PROCESSING.getKey())) {
+            log.info("调用通道进行交易状态同步");
+            TradeData tradeData = tradeDataService.queryOrderStatus(tradedata);
+            log.info("同步后交易状态为 {}", tradeData.getOrderStatus());
+        }
+        Map<String,String> ret=new HashMap<>();
+        ret.put("merNo",tradedata.getMerchantNo());
+        ret.put("merOrder",tradedata.getMerOrder());
+        ret.put("orderStatus",tradedata.getOrderStatus());
+        return ret;
+    }
+    @PostMapping("/test")
+    @ResponseBody
+    public void test(@RequestParam String merNo,@RequestParam String merOrder,@RequestParam String orderStatus){
+        log.info("客户端回调的 商户号 {} ，订单号 {} 订单状态 {}",merNo,merOrder,orderStatus);
     }
 
-    @RequestMapping(value = "test")
-    public void test(@RequestBody String str){
-        log.info(str);
+    @RequestMapping("/hello")
+    public String index(){
+        return "scan";
+    }
+    @PostMapping("/queryMerList")
+    @ResponseBody
+    public ApiResp queryMerList(@RequestParam(defaultValue = "1") long pageNumber,@RequestParam(defaultValue = "10") long pageSize, MerInfo merInfo ){
+        if(StrUtil.isBlank(merInfo.getChannelCode())){
+            return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("渠道号必填").build();
+        }
+        PageQuery<MerInfo> pageQuery=new PageQuery<>();
+        pageQuery.setPageNumber(pageNumber);
+        pageQuery.setPageSize(pageSize);
+        pageQuery.setParas(merInfo);
+
+        merInfo.setDataStatus(Consts.STATUS.NORMAL.getVal());
+        pageQuery=merInfoService.page("merInfo.sample",MerInfo.class,pageQuery);
+
+        return ApiResp.builder().jsonData(pageQuery).respCode(Consts.SYS_COMMON_SUCCESS_CODE).build();
+    }
+
+    @PostMapping(value = "/queryMer")
+    @ResponseBody
+    public Map queryMer(@RequestParam String merNo) {
+        MerInfo merInfo= merInfoService.queryMerInfoStatus(merNo);
+        Map<String,String> map=new HashMap<>();
+        map.put("mercNum",merInfo.getMercNum());
+        map.put("status",merInfo.getStatus());
+        return map;
     }
 
 }

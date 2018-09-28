@@ -1,9 +1,6 @@
 package com.xtf.aggregatepay.service;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.bean.copier.CopyOptions;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.client.TradeClient;
 import com.xtf.aggregatepay.core.BaseService;
@@ -16,11 +13,11 @@ import com.xtf.aggregatepay.entity.TradeData;
 import com.xtf.aggregatepay.util.APUtil;
 import com.xtf.aggregatepay.util.Sha256;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -88,11 +85,13 @@ public class TradeDataService extends BaseService<TradeData> {
         tradeData.setAgentNo(APUtil.getAgentNum());
         String str=JSON.toJSONString(tradeData);
         Map<String,String> param=JSON.parseObject(str,Map.class);
+        param.remove("downCallBackUrl");
         String sign=Sha256.sha256ByAgentKey(param,APUtil.getAgentKey());
         param.put("sign",sign);
         log.info("订单号 {} ，交易数据为:{}",tradeData.getMerOrder(),param);
         TradeResp tradeResp=tradeClient.addTrade(JSON.toJSONString(param));
-        BeanUtil.copyProperties(tradeResp,tradeData,CopyOptions.create().setIgnoreNullValue(true));
+        BeanUtils.copyProperties(tradeResp,tradeData);
+        tradeData.setOrderStatus(Consts.TRADE_STATUS.PROCESSING.getKey());
         insertAutoKey(tradeData);
         return tradeData;
     }
@@ -101,19 +100,18 @@ public class TradeDataService extends BaseService<TradeData> {
      * 依据商户号，订单号，交易金额查询订单
      * @param merNo
      * @param merOrder
-     * @param amount
      * @return
      */
-    public TradeData queryByMerchantNoAndMerOrderAndAmount(String merNo,String merOrder,String amount){
-        return tplOne(TradeData.builder().merOrder(merOrder).merchantNo(merNo).tradeAmount(amount).build());
+    public TradeData queryByMerchantNoAndMerOrder(String merNo,String merOrder){
+        return tplOne(TradeData.builder().merOrder(merOrder).merchantNo(merNo).build());
     }
 
     /**
      * 通知下游客户交易结果
      * @param map
      */
-    public void notifyDown(Map map){
-        tradeClient.downCallback(map);
+    public void notifyDown(String downCallbackUrl,Map map){
+        tradeClient.downCallback(downCallbackUrl,map);
     }
 
     /**
@@ -123,9 +121,19 @@ public class TradeDataService extends BaseService<TradeData> {
      */
     public TradeData queryOrderStatus(TradeData tradeData){
         log.info("订单状态查询，商户号 ${} ,订单号 ${}",tradeData.getMerchantNo(),tradeData.getMerOrder());
-        String param=JSONObject.toJSONString(tradeData);
-        TradeResp tradeResp=tradeClient.queryOrderStatus(param);
-        tradeData.setOrderStatus(tradeResp.getOrderStatus());
+        Map<String,String> param=new HashMap<>();
+        param.put("merchantNo",tradeData.getMerchantNo());
+        param.put("agentNo",tradeData.getAgentNo());
+        param.put("merOrder",tradeData.getMerOrder());
+        param.put("bizType",tradeData.getBizType());
+        param.put("tradeType", Consts.TRADE_TYPE.QUREY.getVal());
+        String sign=Sha256.sha256ByAgentKey(param,APUtil.getAgentKey());
+        param.put("sign",sign);
+        TradeResp tradeResp=tradeClient.queryOrderStatus(JSON.toJSONString(param));
+        if(tradeResp.getResCode().equals(Consts.TRADE_STATUS.CLOSEFAILURE.name()))
+            tradeData.setOrderStatus(Consts.TRADE_STATUS.CLOSEFAILURE.getKey());
+        else
+            tradeData.setOrderStatus(tradeResp.getOrderStatus());
         updateTplById(tradeData);
         log.info("订单状态查询，商户号 ${} ,订单号 ${}，订单状态为 ${}",tradeData.getMerchantNo(),tradeData.getMerOrder(),tradeData.getOrderStatus());
         return tradeData;

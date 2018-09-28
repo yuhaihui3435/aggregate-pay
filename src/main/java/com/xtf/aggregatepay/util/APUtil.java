@@ -1,10 +1,13 @@
 package com.xtf.aggregatepay.util;
 
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.entity.DictItem;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.UUID;
 
 /**
  * 简介
@@ -66,8 +69,37 @@ public class APUtil {
         }
         nanoTimeStr = preFix+nanoTimeStr;
         SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddHHmmssSSS"); //24小时制
-        String timeMillisSequence=sdf.format(System.currentTimeMillis())+"-"+nanoTimeStr;
-
+        String timeMillisSequence=sdf.format(System.currentTimeMillis())+"-"+nanoTimeStr.substring(0,11);
         return timeMillisSequence;
     }
+
+    public static String getUUID() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+
+    /**
+     * 费率编号检查  10003200标准格式
+     * @param rateCode
+     * @return
+     */
+    public static boolean checkRateCode(String rateCode){
+
+        if(StrUtil.isBlank(rateCode)){
+            return false;
+        }
+
+        if(rateCode.length()!=8){
+            return false;
+        }
+
+        if(!(rateCode.startsWith("1")||rateCode.startsWith("2"))){
+            return false;
+        }
+
+        if(!NumberUtil.isInteger(rateCode)){
+            return false;
+        }
+        return true;
+    }
+
 }

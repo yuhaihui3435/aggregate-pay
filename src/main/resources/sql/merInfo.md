@@ -2,16 +2,20 @@ sample
 ===
 * 注释
 
-	select #use("cols")# from MER_INFO_T  where  #use("condition")#
+	select 
+	@pageTag(){
+	    #use("cols")#
+	@}
+	from MER_INFO_T  where  #use("condition")#
 
 cols
 ===
-	REVISION,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME,DELETE_TIME,DELETE_BY,ID,MERC_TYPE,CUSTOM_MCC_TYPE,MERC_NUM,MERC_NAME,PROV_CODE,CITY_CODE,AREA_CODE,LEGAL_PERSON,LEGAL_PHONE,LEGAL_ID_CARD_NUM,BUS_LICENSE_NO,LEGAL_ID_CARD_VALIDITY_PEROID,BUS_LICENSE_VALIDITY_PEROID,LINK_PERSON,LINK_PHONE,MERC_SHORT_NAME,ADDR_DETAIL,INCOME_TYPE,RATE_CODE,CHANNEL_CODE,RATE,STATUS,DATA_STATUS,SETTLE_WAY,PRODUCT,EMAIL,AP_CODE,AP_MERC_CODE
+	REVISION,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME,DELETE_TIME,DELETE_BY,ID,MERC_TYPE,CUSTOM_MCC_TYPE,MERC_NUM,MERC_NAME,PROV_CODE,CITY_CODE,AREA_CODE,LEGAL_PERSON,LEGAL_PHONE,BUS_LICENSE_NO,BUS_LICENSE_VALIDITY_PEROID,LINK_PERSON,LINK_PHONE,MERC_SHORT_NAME,ADDR_DETAIL,INCOME_TYPE,RATE_CODE,CHANNEL_CODE,RATE,STATUS,DATA_STATUS,SETTLE_WAY,PRODUCT,EMAIL,AP_CODE,AP_MERC_CODE,CHANNEL_CODE
 
 updateSample
 ===
 	
-	REVISION=#revision#,CREATED_BY=#createdBy#,CREATED_TIME=#createdTime#,UPDATED_BY=#updatedBy#,UPDATED_TIME=#updatedTime#,DELETE_TIME=#deleteTime#,DELETE_BY=#deleteBy#,ID=#id#,MERC_TYPE=#mercType#,CUSTOM_MCC_TYPE=#customMccType#,MERC_NUM=#mercNum#,MERC_NAME=#mercName#,PROV_CODE=#provCode#,CITY_CODE=#cityCode#,AREA_CODE=#areaCode#,LEGAL_PERSON=#legalPerson#,LEGAL_PHONE=#legalPhone#,LEGAL_ID_CARD_NUM=#legalIdCardNum#,BUS_LICENSE_NO=#busLicenseNo#,LEGAL_ID_CARD_VALIDITY_PEROID=#legalIdCardValidityPeroid#,BUS_LICENSE_VALIDITY_PEROID=#busLicenseValidityPeroid#,LINK_PERSON=#linkPerson#,LINK_PHONE=#linkPhone#,MERC_SHORT_NAME=#mercShortName#,ADDR_DETAIL=#addrDetail#,INCOME_TYPE=#incomeType#,RATE_CODE=#rateCode#,CHANNEL_CODE=#channelCode#,RATE=#rate#,STATUS=#status#,DATA_STATUS=#dataStatus#,SETTLE_WAY=#settleWay#,PRODUCT=#product#,EMAIL=#email#,AP_CODE=#apCode#,AP_MERC_CODE=#apMercCode#
+	REVISION=#revision#,CREATED_BY=#createdBy#,CREATED_TIME=#createdTime#,UPDATED_BY=#updatedBy#,UPDATED_TIME=#updatedTime#,DELETE_TIME=#deleteTime#,DELETE_BY=#deleteBy#,ID=#id#,MERC_TYPE=#mercType#,CUSTOM_MCC_TYPE=#customMccType#,MERC_NUM=#mercNum#,MERC_NAME=#mercName#,PROV_CODE=#provCode#,CITY_CODE=#cityCode#,AREA_CODE=#areaCode#,LEGAL_PERSON=#legalPerson#,LEGAL_PHONE=#legalPhone#,BUS_LICENSE_NO=#busLicenseNo#,BUS_LICENSE_VALIDITY_PEROID=#busLicenseValidityPeroid#,LINK_PERSON=#linkPerson#,LINK_PHONE=#linkPhone#,MERC_SHORT_NAME=#mercShortName#,ADDR_DETAIL=#addrDetail#,INCOME_TYPE=#incomeType#,RATE_CODE=#rateCode#,CHANNEL_CODE=#channelCode#,RATE=#rate#,STATUS=#status#,DATA_STATUS=#dataStatus#,SETTLE_WAY=#settleWay#,PRODUCT=#product#,EMAIL=#email#,AP_CODE=#apCode#,AP_MERC_CODE=#apMercCode#,CHANNEL_CODE=#channelCode#
 
 condition
 ===
@@ -68,14 +72,8 @@ condition
 	@if(!isEmpty(legalPhone)){
 	 and LEGAL_PHONE=#legalPhone#
 	@}
-	@if(!isEmpty(legalIdCardNum)){
-	 and LEGAL_ID_CARD_NUM=#legalIdCardNum#
-	@}
 	@if(!isEmpty(busLicenseNo)){
 	 and BUS_LICENSE_NO=#busLicenseNo#
-	@}
-	@if(!isEmpty(legalIdCardValidityPeroid)){
-	 and LEGAL_ID_CARD_VALIDITY_PEROID=#legalIdCardValidityPeroid#
 	@}
 	@if(!isEmpty(busLicenseValidityPeroid)){
 	 and BUS_LICENSE_VALIDITY_PEROID=#busLicenseValidityPeroid#
@@ -125,5 +123,11 @@ condition
 	@if(!isEmpty(apMercCode)){
 	 and AP_MERC_CODE=#apMercCode#
 	@}
+	@if(!isEmpty(bCreateTime)){
+     and createdTime>=#bCreateTime#
+    @}
+    @if(!isEmpty(eCreateTime)){
+     and createdTime<=#eCreateTime#
+    @}
 	
 	

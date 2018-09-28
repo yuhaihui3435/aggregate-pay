@@ -1,18 +1,18 @@
 package com.xtf.aggregatepay.entity;
-import java.math.*;
-import java.util.Date;
-import java.sql.Timestamp;
 
 import lombok.Builder;
 import lombok.experimental.Tolerate;
 import org.beetl.sql.core.annotatoin.Table;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 
 /* 
 * 
 * gen by beetlsql 2018-09-08
 */
-@Table(name="aggregate_pay_db.CHANNEL_INFO_T")
+@Table(name="CHANNEL_INFO_T")
 @Builder(toBuilder = true)
 public class ChannelInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	

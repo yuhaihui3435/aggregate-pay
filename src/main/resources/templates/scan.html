@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdn.bootcss.com/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+</head>
+<body>
+
+<div>
+    <form id="form">
+        <input type="hidden" id="downCallBackUrl" name="downCallBackUrl" value="http://ap.3435.net.cn/">
+        <input type="text" id="merOrder" name="merOrder">
+        商户编号<input type="text" name="merchantNo" value="">
+        产品名称<select name="productName">
+        <option value="法式面包">法式面包</option>
+        <option value="蔬菜">蔬菜</option>
+        <option value="香烟">香烟</option>
+        <option value="NICK阿甘鞋">NICK阿甘鞋</option>
+        <option value="阿玛尼衣服">阿玛尼衣服</option>
+    </select>
+        金额(单位分)<input type="text" name="tradeAmount" value="132">
+        支付方式<select name="bizType">
+        <option value="WECHATPAY">微信</option>
+        <option value="ALIPAY">支付宝</option>
+    </select>
+
+    </form>
+    <button onclick="getQr()">获取二维码图片</button>
+</div>
+<div id="qrcode">
+
+</div>
+<script>
+    $.fn.serializeObject = function()
+    {
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function() {
+            if (o[this.name] !== undefined) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
+    function S4() {
+        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+    };
+
+    function getQr() {
+        // var form=document.getElementById("form");
+        // var param={}
+        var merOrder=new Date().getTime();
+        $('#merOrder').val(merOrder)
+        // param.merchantNo=document.getElementById('merchantNo').value;
+        // param.productName=document.getElementById('productName').value;
+        // param.tradeAmount=document.getElementById('tradeAmount').value;
+        // param.bizType=document.getElementById('bizType').value;
+        // console.info(param)
+        let param=JSON.stringify($('form').serializeObject());
+
+        console.info(param)
+        $.post("http://ap.3435.net.cn/api/zscan", {
+                'jsonData':param,
+                'sign':'89830490'
+            }
+            , function (result) {
+                console.info(result);
+                jQuery('#qrcode').qrcode(result.jsonData.codeurl);
+            })
+        // jQuery('#qrcode').qrcode('weixin://wxpay/bizpayurl?pr=Vk1Y8ic');
+    }
+</script>
+</body>
+</html>

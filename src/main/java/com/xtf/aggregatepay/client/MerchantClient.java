@@ -2,12 +2,8 @@ package com.xtf.aggregatepay.client;
 
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
-import cn.hutool.http.HttpUtil;
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.google.gson.Gson;
 import com.xtf.aggregatepay.MsgProp;
 import com.xtf.aggregatepay.core.LogicException;
 import com.xtf.aggregatepay.dto.AddMerInfoResp;
@@ -16,13 +12,6 @@ import com.xtf.aggregatepay.dto.QueryMerInfoResp;
 import com.xtf.aggregatepay.util.APUtil;
 import com.xtf.aggregatepay.util.Sha256;
 import lombok.extern.log4j.Log4j2;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LoggingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,8 +19,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
 import java.util.Map;
 
 @Log4j2
@@ -49,7 +36,7 @@ public class MerchantClient {
     private int requestTimeout;
 
     @Autowired
-    private static MsgProp msgProp;
+    private  MsgProp msgProp;
 
 
 

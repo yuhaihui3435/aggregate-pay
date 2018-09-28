@@ -4,7 +4,6 @@ import com.xtf.aggregatepay.util.DelSuffixConversion;
 import org.beetl.sql.core.*;
 import org.beetl.sql.core.db.DBStyle;
 import org.beetl.sql.core.db.MySqlStyle;
-import org.beetl.sql.core.db.SQLiteStyle;
 import org.beetl.sql.ext.DebugInterceptor;
 import org.beetl.sql.ext.gen.GenConfig;
 

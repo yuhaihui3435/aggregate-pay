@@ -19,7 +19,7 @@ import lombok.Data;
 @Data
 public class TradeResp extends HttpResp {
     private String payOrderNo;
-    private String codeUrl;
+    private String codeurl;
     private String tradeAmount;
     private String merOrder;
     private String merchantNo;

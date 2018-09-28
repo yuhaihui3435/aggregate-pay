@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Tolerate;
 import org.beetl.sql.core.annotatoin.Table;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.data.annotation.Transient;
 
 import javax.validation.constraints.NotBlank;
 import java.util.Date;
@@ -14,7 +15,7 @@ import java.util.Date;
 * 
 * gen by beetlsql 2018-09-04
 */
-@Table(name="aggregate_pay_db.MER_INFO_T")
+@Table(name="MER_INFO_T")
 @Builder
 @Data
 public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
@@ -168,10 +169,12 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	/*
 	费率编号
 	*/
+	@NotBlank(message = "费率编号必填")
 	private String rateCode ;
 	/*
 	结算方式-T1:T1,Ts:(T0业务)
 	*/
+	@NotBlank(message = "结算方式必填")
 	private String settleWay ;
 	/*
 	状态-SHZ:审核中,SHTG:审核通过,DDSH:等待审核,SHJJ:审核未通过
@@ -197,6 +200,14 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	private String appMercCode;
 
 	private String tradeFlowNo;
+	@Transient
+	private Date bCreateTime;
+	@Transient
+	private Date eCreateTime;
+
+
+
+
 	@Tolerate
 	public MerInfo() {
 	}
@@ -749,6 +760,8 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	public void setUpdatedTime(Date updatedTime ){
 		this.updatedTime = updatedTime;
 	}
+
+
 	
 
 }

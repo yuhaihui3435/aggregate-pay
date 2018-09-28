@@ -1,25 +1,14 @@
 package com.xtf.aggregatepay;
 
-import com.xtf.aggregatepay.entity.ApCode;
-import com.xtf.aggregatepay.entity.Dict;
-import com.xtf.aggregatepay.entity.DictItem;
 import com.xtf.aggregatepay.service.ApCodeService;
-import com.xtf.aggregatepay.service.DictItemService;
 import com.xtf.aggregatepay.service.DictService;
-import com.xtf.aggregatepay.util.EhcacheUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.cache.Cache;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
-import org.springframework.cache.ehcache.EhCacheManagerUtils;
 import org.springframework.stereotype.Component;
-import sun.plugin2.util.SystemUtil;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.List;
 
 /**
  * 简介

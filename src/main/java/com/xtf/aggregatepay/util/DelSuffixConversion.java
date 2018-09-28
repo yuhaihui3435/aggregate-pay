@@ -1,6 +1,5 @@
 package com.xtf.aggregatepay.util;
 
-import cn.hutool.core.util.StrUtil;
 import org.beetl.sql.core.NameConversion;
 import org.beetl.sql.core.annotatoin.Table;
 import org.beetl.sql.core.kit.StringKit;

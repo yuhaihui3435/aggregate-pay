@@ -1,20 +1,20 @@
 package com.xtf.aggregatepay.entity;
-import java.math.*;
-import java.util.Date;
-import java.sql.Timestamp;
 
 import lombok.Builder;
 import lombok.experimental.Tolerate;
 import org.beetl.sql.core.annotatoin.Table;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+import java.util.Date;
 
 
 /* 
 * 
 * gen by beetlsql 2018-09-08
 */
-@Table(name="aggregate_pay_db.TRADE_DATA_T")
+@Table(name="TRADE_DATA_T")
 @Builder(toBuilder = true)
 public class TradeData extends com.xtf.aggregatepay.core.BaseEntity  {
 	

@@ -1,21 +1,22 @@
 package com.xtf.aggregatepay.service;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.client.MerchantClient;
 import com.xtf.aggregatepay.core.BaseService;
 import com.xtf.aggregatepay.core.LogicException;
-import com.xtf.aggregatepay.entity.*;
+import com.xtf.aggregatepay.entity.ChannelInfo;
+import com.xtf.aggregatepay.entity.MerBankInfo;
+import com.xtf.aggregatepay.entity.MerInfo;
 import com.xtf.aggregatepay.util.APUtil;
 import com.xtf.aggregatepay.util.Sha256;
 import lombok.extern.log4j.Log4j2;
-import org.beetl.sql.core.db.KeyHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.beans.Transient;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -76,15 +77,17 @@ public class MerInfoService extends BaseService<MerInfo> {
         ChannelInfo channelInfo=channelInfoService.findByCode(merInfo.getChannelCode());
         if(channelInfo==null)throw new LogicException("新增商户信息失败，原因：渠道商不存在或被停用");
         //依据商户的结算方式，从商户所属渠道那边获取对应的交易费率
-        if(merInfo.getSettleWay().equals(Consts.SETTLEWAY.T1.name())){
-            merInfo.setRateCode(channelInfo.getT1RateCode());
-            merInfo.setRate(channelInfo.getT1Rate());
-        }else if(merInfo.getSettleWay().equals(Consts.SETTLEWAY.TS.name())){
-            merInfo.setRateCode(channelInfo.getTsRateCode());
-            merInfo.setRate(channelInfo.getTsRate());
-        }else{
-            log.error("商户结算方式不正确，当前值为 {}",merInfo.getSettleWay());
-            throw new LogicException("结算方式设置不正确，请设置为T1或者TS");
+        if(StrUtil.isBlank(merInfo.getRateCode())) {
+            if (merInfo.getSettleWay().equals(Consts.SETTLEWAY.T1.name())) {
+                merInfo.setRateCode(channelInfo.getT1RateCode());
+                merInfo.setRate(channelInfo.getT1Rate());
+            } else if (merInfo.getSettleWay().equals(Consts.SETTLEWAY.Ts.name())) {
+                merInfo.setRateCode(channelInfo.getTsRateCode());
+                merInfo.setRate(channelInfo.getTsRate());
+            } else {
+                log.error("商户结算方式不正确，当前值为 {}", merInfo.getSettleWay());
+                throw new LogicException("结算方式设置不正确，请设置为T1或者TS");
+            }
         }
 
         merBankInfo.setCardType("0");//借记卡
@@ -98,11 +101,27 @@ public class MerInfoService extends BaseService<MerInfo> {
         if(!picMap.containsKey(Consts.PicType.LICENSE.getStr()))throw new LogicException("新增商户信息失败，原因：缺少营业执照照片");
         if(!picMap.containsKey(Consts.PicType.CARD.getStr()))throw new LogicException("新增商户信息失败，原因：缺少身份证正面照片");
         if(!picMap.containsKey(Consts.PicType.BACKCARD.getStr()))throw new LogicException("新增商户信息失败，原因：缺少身份证背面照片");
+        if(!picMap.containsKey(Consts.PicType.BANKCARD.getStr()))throw new LogicException("新增商户信息失败，原因：缺少身份证背面照片");
+        if(!picMap.containsKey(Consts.PicType.MAINPHOTO.getStr()))throw new LogicException("新增商户信息失败，原因：缺少店铺门头照照片");
+
+        if(!merInfo.getLegalPerson().equals(merBankInfo.getAccName())){
+            if(!picMap.containsKey(Consts.PicType.POWER.getStr()))throw new LogicException("新增商户信息失败，原因：缺少非结算法人授权书照片");
+        }
 
 //        picMap.clear();
 //        picMap.put(Consts.PicType.LICENSE.getStr(),"21279");
 //        picMap.put(Consts.PicType.CARD.getStr(),"21280");
 //        picMap.put(Consts.PicType.BACKCARD.getStr(),"21281");
+//        Map<String,String> merInfoMap=new HashMap<>();
+//        merInfoMap.put("mercType",merInfo.getMercType());
+//        merInfoMap.put("customMccType",merInfo.getCustomMccType());
+//        merInfoMap.put("mercName", merInfo.getMercName());
+//        merInfoMap.put("provCode",merInfo.getProvCode());
+//        merInfoMap.put("cityCode",merInfo.getCityCode());
+//        merInfoMap.put("areaCode",merInfo.getAreaCode());
+//        merInfoMap.put("legalPerson",merInfo.getLegalPerson());
+
+
 
 
         String agentNum=APUtil.getAgentNum();

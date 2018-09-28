@@ -1,7 +1,5 @@
 package com.xtf.aggregatepay.entity;
-import java.math.*;
-import java.util.Date;
-import java.sql.Timestamp;
+
 import org.beetl.sql.core.annotatoin.Table;
 
 
@@ -9,7 +7,7 @@ import org.beetl.sql.core.annotatoin.Table;
 * 
 * gen by beetlsql 2018-09-03
 */
-@Table(name="aggregate_pay_db.DICT_ITEM_T")
+@Table(name="DICT_ITEM_T")
 public class DictItem extends com.xtf.aggregatepay.core.BaseEntity  {
 	
 	private Integer id ;

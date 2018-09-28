@@ -2,11 +2,8 @@ package com.xtf.aggregatepay.core;
 
 import lombok.extern.log4j.Log4j2;
 import org.beetl.sql.core.SQLManager;
-import org.beetl.sql.core.db.KeyHolder;
 import org.beetl.sql.core.engine.PageQuery;
-import org.beetl.sql.core.mapper.BaseMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

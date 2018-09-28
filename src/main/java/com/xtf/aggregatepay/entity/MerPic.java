@@ -1,15 +1,15 @@
 package com.xtf.aggregatepay.entity;
-import java.math.*;
-import java.util.Date;
-import java.sql.Timestamp;
+
 import org.beetl.sql.core.annotatoin.Table;
+
+import java.util.Date;
 
 
 /* 
 * 
 * gen by beetlsql 2018-09-04
 */
-@Table(name="aggregate_pay_db.MER_PIC_T")
+@Table(name="MER_PIC_T")
 public class MerPic extends com.xtf.aggregatepay.core.BaseEntity  {
 	
 	/*

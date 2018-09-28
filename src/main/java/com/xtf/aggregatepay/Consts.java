@@ -39,7 +39,7 @@ public interface Consts {
      }
 
      enum SETTLEWAY{
-         T1,TS
+         T1,Ts
      }
 
      enum INCOMETYPE{

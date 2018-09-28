@@ -1,7 +1,5 @@
 package com.xtf.aggregatepay.entity;
-import java.math.*;
-import java.util.Date;
-import java.sql.Timestamp;
+
 import org.beetl.sql.core.annotatoin.Table;
 
 
@@ -9,7 +7,7 @@ import org.beetl.sql.core.annotatoin.Table;
 * 
 * gen by beetlsql 2018-09-09
 */
-@Table(name="aggregate_pay_db.AP_CODE_T")
+@Table(name="AP_CODE_T")
 public class ApCode extends com.xtf.aggregatepay.core.BaseEntity  {
 	
 	private String apCode ;
