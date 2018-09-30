@@ -110,4 +110,8 @@ sumTradeAmount
 
 select sum(TRADE_AMOUNT) from TRADE_DATA_T where  MERCHANT_NO=#merNum# and (ORDER_STATUS ='success'
  or ORDER_STATUS ='processing') and  to_days(TIME_END) = to_days(now())  
-	
+ 
+staticsTradeByChannel
+===
+select sum(TRADE_AMOUNT) ,count(*),CHANNEL_CODE  from 	TRADE_DATA_T where to_days(TIME_END) = to_days(now()) and ORDER_STATUS ='success'
+and and BIZ_TYPE=#bizType# group by CHANNEL_CODE

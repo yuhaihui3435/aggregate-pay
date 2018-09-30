@@ -120,7 +120,7 @@ public class TradeDataService extends BaseService<TradeData> {
      * @return
      */
     public TradeData queryOrderStatus(TradeData tradeData){
-        log.info("订单状态查询，商户号 ${} ,订单号 ${}",tradeData.getMerchantNo(),tradeData.getMerOrder());
+        log.info("订单状态查询，商户号 {} ,订单号 {}",tradeData.getMerchantNo(),tradeData.getMerOrder());
         Map<String,String> param=new HashMap<>();
         param.put("merchantNo",tradeData.getMerchantNo());
         param.put("agentNo",tradeData.getAgentNo());
@@ -135,7 +135,7 @@ public class TradeDataService extends BaseService<TradeData> {
         else
             tradeData.setOrderStatus(tradeResp.getOrderStatus());
         updateTplById(tradeData);
-        log.info("订单状态查询，商户号 ${} ,订单号 ${}，订单状态为 ${}",tradeData.getMerchantNo(),tradeData.getMerOrder(),tradeData.getOrderStatus());
+        log.info("订单状态查询，商户号 $} ,订单号 {}，订单状态为 {}",tradeData.getMerchantNo(),tradeData.getMerOrder(),tradeData.getOrderStatus());
         return tradeData;
     }
 
