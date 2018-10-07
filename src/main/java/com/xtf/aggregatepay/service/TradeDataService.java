@@ -1,5 +1,9 @@
 package com.xtf.aggregatepay.service;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.mail.MailUtil;
 import com.alibaba.fastjson.JSON;
 import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.client.TradeClient;
@@ -7,20 +11,23 @@ import com.xtf.aggregatepay.core.BaseService;
 import com.xtf.aggregatepay.core.LogicException;
 import com.xtf.aggregatepay.dao.TradeDataDao;
 import com.xtf.aggregatepay.dto.TradeResp;
-import com.xtf.aggregatepay.entity.ChannelInfo;
-import com.xtf.aggregatepay.entity.MerInfo;
-import com.xtf.aggregatepay.entity.TradeData;
+import com.xtf.aggregatepay.entity.*;
 import com.xtf.aggregatepay.util.APUtil;
+import com.xtf.aggregatepay.util.EhcacheUtil;
 import com.xtf.aggregatepay.util.Sha256;
 import lombok.extern.log4j.Log4j2;
+import org.apache.tomcat.util.bcel.Const;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -50,6 +57,8 @@ public class TradeDataService extends BaseService<TradeData> {
     private String tradeCallbackUrl;
     @Autowired
     private TradeClient tradeClient;
+    @Autowired
+    private ChannelDayStatisticsService channelDayStatisticsService;
 
     /**
      * 实时计算商户当日总交易额度，交易状态为 完成，处理中的
@@ -91,6 +100,7 @@ public class TradeDataService extends BaseService<TradeData> {
         log.info("订单号 {} ，交易数据为:{}",tradeData.getMerOrder(),param);
         TradeResp tradeResp=tradeClient.addTrade(JSON.toJSONString(param));
         BeanUtils.copyProperties(tradeResp,tradeData);
+        tradeData.setChannelCode(merInfo.getChannelCode());
         tradeData.setOrderStatus(Consts.TRADE_STATUS.PROCESSING.getKey());
         insertAutoKey(tradeData);
         return tradeData;
@@ -138,5 +148,71 @@ public class TradeDataService extends BaseService<TradeData> {
         log.info("订单状态查询，商户号 $} ,订单号 {}，订单状态为 {}",tradeData.getMerchantNo(),tradeData.getMerOrder(),tradeData.getOrderStatus());
         return tradeData;
     }
+
+    public void staticsChannelTradeInDay(String staticsDate,String bizType,String settleWay){
+
+        if(StrUtil.isBlank(settleWay))throw new LogicException("渠道交易统计操作，结算方式必填");
+        List<ChannelInfo> channelInfoList=tradeDataDao.staticsTradeByChannel(staticsDate,bizType,settleWay);
+//        StringBuilder stringBuilder=new StringBuilder();
+//        stringBuilder.append("<table>").append("<tr>").append("<td>统计日期</td><td>渠道编号</td><td>渠道名称</td><td>结算方式</td><td>交易金额</td><td>交易数量</td>").append("</tr>");
+        channelInfoList.stream().forEach(channelInfo -> {
+            if(channelInfo.get("totalTradeAmount")!=null) {
+                ChannelDayStatistics channelDayStatistics = channelDayStatisticsService.tplOne(ChannelDayStatistics.builder().statisticsDay(DateUtil.parse(staticsDate, "yyyy-MM-dd")).settlyType(settleWay).build());
+                if (channelDayStatistics != null) channelDayStatisticsService.del(channelDayStatistics.getId());
+                String cRateCode = null;
+                String rateCode = null;
+                int zs = 0;
+                if (settleWay.equals(Consts.SETTLEWAY.T1.name())) {
+                    cRateCode = channelInfo.getT1RateCode();
+                    rateCode = APUtil.getT1RateCode();
+                } else {
+                    cRateCode = channelInfo.getTsRateCode();
+                    rateCode = APUtil.getTsRateCode();
+                }
+                log.info("商户结算方式{},商户费率编号{}", settleWay, cRateCode);
+                channelDayStatistics = new ChannelDayStatistics();
+                channelDayStatistics.setChannelCode(channelInfo.getCode());
+                channelDayStatistics.setSettlyType(settleWay);
+                channelDayStatistics.setTradeAmount((BigDecimal) channelInfo.get("totalTradeAmount"));
+                channelDayStatistics.setTradeNum((Integer) channelInfo.get("totalTradeNum"));
+                BigDecimal b1 = APUtil.getRate(cRateCode).subtract(APUtil.getRate(rateCode));
+                BigDecimal b2 = APUtil.getZs(cRateCode).subtract(APUtil.getZs(rateCode));
+                BigDecimal b3 = b1.multiply(channelDayStatistics.getTradeAmount().divide(new BigDecimal(100)));//交易手续费
+                BigDecimal b4 = b2.multiply(new BigDecimal(channelDayStatistics.getTradeNum()));//交易增收
+                channelDayStatistics.setProfit(b3.add(b4));
+                channelDayStatistics.setStatisticsDay(DateUtil.parse(staticsDate, "yyyy-MM-dd"));
+                channelDayStatisticsService.insertAutoKey(channelDayStatistics);
+
+//                stringBuilder.append("<tr>").append("<td>").append(staticsDate).append("</td>").append("<td>").append(channelInfo.getCode()).append("</td>")
+//                        .append("<td>").append(channelInfo.getName()).append("</td>")
+//                        .append("<td>").append(settleWay).append("</td>")
+//                        .append("<td>").append(channelDayStatistics.getTradeAmount()).append("</td>")
+//                        .append("<td>").append(channelDayStatistics.getTradeNum()).append("</td>");
+
+                log.info("{}交易金额{},交易笔数{},交易手续费{},交易增收{},profit={}", staticsDate, channelDayStatistics.getTradeAmount(), channelDayStatistics.getTradeNum(), b3, b4, channelDayStatistics.getProfit());
+            }
+        });
+
+
+
+
+
+    }
+    @Scheduled(cron = "0 1 0 * * ?")
+    public void channelT1TaskSchedule(){
+        log.info("渠道T1统计开始");
+        DateTime dateTime=DateUtil.yesterday();
+        staticsChannelTradeInDay("2018-09-12",null,Consts.SETTLEWAY.T1.name());
+        log.info("渠道T1统计结束");
+    }
+
+    @Scheduled(cron = "0 1 0 * * ?")
+    public void channelTsTaskSchedule(){
+        log.info("渠道Ts统计开始");
+        DateTime dateTime=DateUtil.yesterday();
+        staticsChannelTradeInDay(dateTime.toDateStr(),null,Consts.SETTLEWAY.Ts.name());
+        log.info("渠道Ts统计结束");
+    }
+
 
 }

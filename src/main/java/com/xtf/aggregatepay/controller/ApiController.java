@@ -356,8 +356,10 @@ public class ApiController extends BaseController {
         if (StrUtil.isBlank(downCallbackUrl)) log.error("下游回调地址未设置");
         else {
             MerInfo merInfo = merInfoService.findByMercNum(merNo);
+            map.clear();
             map.put("merNo",tradeData.getMerchantNo());
             map.put("merOrder",tradeData.getMerOrder());
+            map.put("tradeAmount",tradeData.getTradeAmount());
             map.put("orderStatus",tradeData.getOrderStatus());
             ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), merInfo.getApCode());
             String resp_sign=Sha256.sha256ByAgentKey(map,apCode.getApKey());

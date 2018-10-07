@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.entity.DictItem;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.UUID;
@@ -43,6 +44,14 @@ public class APUtil {
 
     public static String getAgentNum(){
         DictItem dictItem=((DictItem)EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),Consts.AGENT.agentNum.name()));
+        return dictItem.getDictItemVal();
+    }
+    public static String getT1RateCode(){
+        DictItem dictItem=((DictItem)EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"my_t1_rateCode"));
+        return dictItem.getDictItemVal();
+    }
+    public static String getTsRateCode(){
+        DictItem dictItem=((DictItem)EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"my_ts_rateCode"));
         return dictItem.getDictItemVal();
     }
     /**
@@ -100,6 +109,30 @@ public class APUtil {
             return false;
         }
         return true;
+    }
+
+    public static BigDecimal getRate(String rateCode){
+        String str=rateCode.substring(1,6);
+        BigDecimal bigDecimal=new BigDecimal(str);
+        if(str.endsWith("0")){
+            str=str.substring(0,str.length()-1);
+            return new BigDecimal(str).divide(new BigDecimal(1000));
+        }else{
+            return new BigDecimal(str).divide(new BigDecimal(10000));
+        }
+
+
+    }
+
+    public static BigDecimal getZs(String rateCode){
+        String str=rateCode.substring(6,8);
+        str=str.replaceAll("0","");
+        return new BigDecimal(str).divide(new BigDecimal(10));
+    }
+
+    public static void main(String[] args) {
+        System.out.printf(""+getRate("10004901"));
+        System.out.printf(""+getZs("10004511"));
     }
 
 }

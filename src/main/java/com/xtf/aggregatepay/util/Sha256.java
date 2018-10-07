@@ -29,6 +29,7 @@ public class Sha256 {
     }
     public static String signBySha256(Map<String, String> objectAsMap, String key) {
         String result = sortStringByMap(objectAsMap) + "key=" + key;
+//        result="bizType=ALIPAY&downCallBackUrl=http://pay-futong-back.zzc2233.com/callback/notify.php&merOrder=181002142013219073&merchantNo=M23225013781989578057046&productName=Goods&tradeAmount=5000&key=BDCFDFDFDFSFUIUOIURIUEREWFFD";
         String sign = DigestUtils.sha256Hex(result).toUpperCase();
         return sign;
     }
@@ -70,7 +71,7 @@ public class Sha256 {
 
     public static void main(String[] args) {
 //        String str="{\"a\":\"aaaa\",\"b\":\"bcdd\",\"c\":{\"c\":\"kllkl\",\"aaa\":\"ssss\"}}";
-        String str="{\"merInfo\":{\"mercName\":\"123123\",\"mercType\":\"business\",\"customMccType\":\"C00004\",\"provCode\":\"210000\",\"cityCode\":\"210100\",\"areaCode\":\"210102\",\"legalPerson\":\"123\",\"legalPhone\":\"234\",\"email\":\"234\",\"idCardNum\":\"234\",\"busLicenseNo\":\"234\",\"idCardValidityPeroid\":\"2020-10-10\",\"busLicenseValidityPeroid\":\"2020-10-10\",\"linkPerson\":\"234523\",\"linkPhone\":\"2342\",\"mercShortName\":\"34234\",\"addrDetail\":\"345\",\"apCode\":\"123456789\",\"channelCode\":\"10000000\"},\"merBankInfo\":{\"idCardValidityPeroid\":\"2020-10-10\",\"accType\":\"TO_PRIVATE\",\"bankCode\":\"KFCB\",\"accName\":\"345\",\"bankProvCode\":\"150000\",\"bankCityCode\":\"150400\",\"accNum\":\"345\",\"idCardNum\":\"345\",\"phone\":\"345\",\"bankNameBranch\":\"345\"}}";
+        String str="{\"bizType\":\"ALIPAY\",\"downCallBackUrl\":\"http://pay-futong-back.zzc2233.com/callback/notify.php\",\"merOrder\":\"181002141145819169\",\"merchantNo\":\"M23225013781989578057046\",\"productName\":\"Goods\",\"tradeAmount\":10000}";
 //        HashMap hashMap= JSON.parseObject(str,HashMap.class);
         System.out.println(sha256ByAgentKey(str,"BDCFDFDFDFSFUIUOIURIUEREWFFD"));
     }

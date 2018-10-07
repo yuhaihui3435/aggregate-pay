@@ -113,5 +113,23 @@ select sum(TRADE_AMOUNT) from TRADE_DATA_T where  MERCHANT_NO=#merNum# and (ORDE
  
 staticsTradeByChannel
 ===
-select sum(TRADE_AMOUNT) ,count(*),CHANNEL_CODE  from 	TRADE_DATA_T where to_days(TIME_END) = to_days(now()) and ORDER_STATUS ='success'
-and and BIZ_TYPE=#bizType# group by CHANNEL_CODE
+select ci.*,
+(select sum(td.trade_amount) from TRADE_DATA_T td,MER_INFO_T mi where td.ORDER_STATUS='success' 
+@if(!isEmpty(staticsDate)){
+and DATE_FORMAT(td.TIME_END,'%Y-%m-%d')=#staticsDate# 
+@}
+@if(!isEmpty(bizType)){
+and td.BIZ_TYPE=#bizType# 
+@}
+and td.MERCHANT_NO=mi.MERC_NUM and mi.SETTLE_WAY=#settleWay#
+and td.channel_code in (select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(ci.id)))) as totalTradeAmount,
+(select count(td.id) from TRADE_DATA_T td,MER_INFO_T mi where td.ORDER_STATUS='success' 
+@if(!isEmpty(staticsDate)){
+and DATE_FORMAT(td.TIME_END,'%Y-%m-%d')=#staticsDate# 
+@}
+@if(!isEmpty(bizType)){
+and td.BIZ_TYPE=#bizType#
+@}
+and td.MERCHANT_NO=mi.MERC_NUM and mi.SETTLE_WAY=#settleWay#
+and  td.channel_code in (select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(ci.id)))) as totalTradeNum 
+from CHANNEL_INFO_T ci 

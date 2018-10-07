@@ -1,11 +1,13 @@
 package com.xtf.aggregatepay.dao;
 
+import com.xtf.aggregatepay.entity.ChannelInfo;
 import com.xtf.aggregatepay.entity.TradeData;
 import org.beetl.sql.core.annotatoin.Param;
 import org.beetl.sql.core.mapper.BaseMapper;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 简介
@@ -25,5 +27,7 @@ import java.math.BigDecimal;
 public interface TradeDataDao extends BaseMapper<TradeData> {
 
     BigDecimal sumTradeAmount(@Param("merNum") String merNum);
+
+    List<ChannelInfo> staticsTradeByChannel(@Param("staticsDate") String staticsDate,@Param("bizType") String bizType,@Param("settleWay") String settleWay);
 
 }

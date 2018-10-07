@@ -2,14 +2,20 @@ package com.xtf.aggregatepay.entity;
 import java.math.*;
 import java.util.Date;
 import java.sql.Timestamp;
+
+import lombok.Builder;
+import lombok.Data;
+import lombok.experimental.Tolerate;
 import org.beetl.sql.core.annotatoin.Table;
 
 
 /* 
 * 
-* gen by beetlsql 2018-09-30
+* gen by beetlsql 2018-10-07
 */
 @Table(name="aggregate_pay_db.CHANNEL_BROKERAGE_T")
+@Builder
+@Data
 public class ChannelBrokerage extends com.xtf.aggregatepay.core.BaseEntity  {
 	
 	/*
@@ -20,10 +26,6 @@ public class ChannelBrokerage extends com.xtf.aggregatepay.core.BaseEntity  {
 	乐观锁
 	*/
 	private Integer revision ;
-	/*
-	交易笔数
-	*/
-	private Integer tradeCount ;
 	/*
 	银行支付号
 	*/
@@ -80,7 +82,7 @@ public class ChannelBrokerage extends com.xtf.aggregatepay.core.BaseEntity  {
 	更新时间
 	*/
 	private Date updatedTime ;
-	
+	@Tolerate
 	public ChannelBrokerage() {
 	}
 	
@@ -112,21 +114,6 @@ public class ChannelBrokerage extends com.xtf.aggregatepay.core.BaseEntity  {
 	*/
 	public void setRevision(Integer revision ){
 		this.revision = revision;
-	}
-	
-	/**
-	* 交易笔数
-	*@return 
-	*/
-	public Integer getTradeCount(){
-		return  tradeCount;
-	}
-	/**
-	* 交易笔数
-	*@param  tradeCount
-	*/
-	public void setTradeCount(Integer tradeCount ){
-		this.tradeCount = tradeCount;
 	}
 	
 	/**

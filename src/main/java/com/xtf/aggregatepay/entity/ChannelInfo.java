@@ -1,6 +1,7 @@
 package com.xtf.aggregatepay.entity;
 
 import lombok.Builder;
+import lombok.Data;
 import lombok.experimental.Tolerate;
 import org.beetl.sql.core.annotatoin.Table;
 
@@ -14,6 +15,7 @@ import java.util.Date;
 */
 @Table(name="CHANNEL_INFO_T")
 @Builder(toBuilder = true)
+@Data
 public class ChannelInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	
 	/*
@@ -128,6 +130,9 @@ public class ChannelInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	更新时间
 	*/
 	private Date updatedTime ;
+
+	private String type;
+
 	@Tolerate
 	public ChannelInfo() {
 	}

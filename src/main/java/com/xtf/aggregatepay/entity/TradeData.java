@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
 import org.beetl.sql.core.annotatoin.Table;
+import org.springframework.data.annotation.Transient;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -150,6 +151,8 @@ public class TradeData extends com.xtf.aggregatepay.core.BaseEntity  {
 	private String downCallBackRet;
 
 	private Date downCallBackRetLasttime;
+	@Transient
+	private int tradeNum;
 
 
 	@Tolerate

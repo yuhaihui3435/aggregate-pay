@@ -20,7 +20,7 @@ public class BeetlGenCode {
         config.setIgnorePrefix("_T");
         config.preferBigDecimal(true);
         config.setBaseClass("com.xtf.aggregatepay.core.BaseEntity");
-        String table="CHANNEL_BROKERAGE_T";
+        String table="CHANNEL_DAY_STATISTICS_T";
         sqlManager.genPojoCode(table,"com.xtf.aggregatepay.entity",config);
         sqlManager.genSQLFile(table,config);
     }

@@ -104,4 +104,16 @@ public class MerTest {
         log.info(httpResponse.body());
     }
 
+    @Test
+    public void callBack(){
+        Map map=new HashMap();
+        map.put("merNo","M23225013781989578057046");
+        map.put("merOrder","181006121731937712");
+        map.put("orderStatus","success");
+        map.put("tradeAmount","100");
+        String sign=Sha256.sha256ByAgentKey(map,"BDCFDFDFDFSFUIUOIURIUEREWFFD");
+        HttpResponse httpResponse= HttpRequest.post("http://pay-futong-back.zzc2233.com/callback/notify.php").form("merNo","M23225013781989578057046").form("tradeAmount","100").form("merOrder","181006121731937712").form("orderStatus","success").form("sign",sign).execute();
+        log.info(httpResponse.body());
+    }
+
 }

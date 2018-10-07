@@ -6,12 +6,12 @@ sample
 
 cols
 ===
-	REVISION,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME,DELETE_TIME,DELETE_BY,ID,CHANNEL_CODE,BROKERAGE_DAY,BROKERAGE_AMOUNT,SETTLE_TIME,SETTLE_AMOUNT,BANK_PAY_ORDER,PAY_PIC,PAY_TIME,TRADE_COUNT
+	REVISION,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME,DELETE_TIME,DELETE_BY,ID,CHANNEL_CODE,BROKERAGE_DAY,BROKERAGE_AMOUNT,SETTLE_TIME,SETTLE_AMOUNT,BANK_PAY_ORDER,PAY_PIC,PAY_TIME
 
 updateSample
 ===
 	
-	REVISION=#revision#,CREATED_BY=#createdBy#,CREATED_TIME=#createdTime#,UPDATED_BY=#updatedBy#,UPDATED_TIME=#updatedTime#,DELETE_TIME=#deleteTime#,DELETE_BY=#deleteBy#,ID=#id#,CHANNEL_CODE=#channelCode#,BROKERAGE_DAY=#brokerageDay#,BROKERAGE_AMOUNT=#brokerageAmount#,SETTLE_TIME=#settleTime#,SETTLE_AMOUNT=#settleAmount#,BANK_PAY_ORDER=#bankPayOrder#,PAY_PIC=#payPic#,PAY_TIME=#payTime#,TRADE_COUNT=#tradeCount#
+	REVISION=#revision#,CREATED_BY=#createdBy#,CREATED_TIME=#createdTime#,UPDATED_BY=#updatedBy#,UPDATED_TIME=#updatedTime#,DELETE_TIME=#deleteTime#,DELETE_BY=#deleteBy#,ID=#id#,CHANNEL_CODE=#channelCode#,BROKERAGE_DAY=#brokerageDay#,BROKERAGE_AMOUNT=#brokerageAmount#,SETTLE_TIME=#settleTime#,SETTLE_AMOUNT=#settleAmount#,BANK_PAY_ORDER=#bankPayOrder#,PAY_PIC=#payPic#,PAY_TIME=#payTime#
 
 condition
 ===
@@ -65,9 +65,5 @@ condition
 	@if(!isEmpty(payTime)){
 	 and PAY_TIME=#payTime#
 	@}
-	@if(!isEmpty(tradeCount)){
-	 and TRADE_COUNT=#tradeCount#
-	@}
-	
 	
 	
