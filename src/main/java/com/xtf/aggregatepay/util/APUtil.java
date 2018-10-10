@@ -2,6 +2,7 @@ package com.xtf.aggregatepay.util;
 
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.mail.MailUtil;
 import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.entity.DictItem;
 
@@ -46,12 +47,16 @@ public class APUtil {
         DictItem dictItem=((DictItem)EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),Consts.AGENT.agentNum.name()));
         return dictItem.getDictItemVal();
     }
-    public static String getT1RateCode(){
-        DictItem dictItem=((DictItem)EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"my_t1_rateCode"));
+    public static String getT1Rate(){
+        DictItem dictItem=((DictItem)EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"my_t1_rate"));
         return dictItem.getDictItemVal();
     }
-    public static String getTsRateCode(){
-        DictItem dictItem=((DictItem)EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"my_ts_rateCode"));
+    public static String getTsRate(){
+        DictItem dictItem=((DictItem)EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"my_ts_rate"));
+        return dictItem.getDictItemVal();
+    }
+    public static String getTsZs(){
+        DictItem dictItem=((DictItem)EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"my_ts_zs"));
         return dictItem.getDictItemVal();
     }
     /**
@@ -112,14 +117,10 @@ public class APUtil {
     }
 
     public static BigDecimal getRate(String rateCode){
-        String str=rateCode.substring(1,6);
+        String str=rateCode.substring(2,6);
+        str="0."+str;
         BigDecimal bigDecimal=new BigDecimal(str);
-        if(str.endsWith("0")){
-            str=str.substring(0,str.length()-1);
-            return new BigDecimal(str).divide(new BigDecimal(1000));
-        }else{
-            return new BigDecimal(str).divide(new BigDecimal(10000));
-        }
+        return bigDecimal;
 
 
     }
@@ -131,8 +132,14 @@ public class APUtil {
     }
 
     public static void main(String[] args) {
-        System.out.printf(""+getRate("10004901"));
-        System.out.printf(""+getZs("10004511"));
+        System.out.printf(""+getRate("10004401"));
+//        System.out.printf(""+getZs("10004511"));
+//        System.out.println(getUUID());
+
+//        MailUtil.send("125227112@qq.com","你好萧霆峰","这事一段完事",false);
+
+
+//        System.out.println(new String[]{"==="});
     }
 
 }

@@ -109,7 +109,7 @@ sumTradeAmount
 ===
 
 select sum(TRADE_AMOUNT) from TRADE_DATA_T where  MERCHANT_NO=#merNum# and (ORDER_STATUS ='success'
- or ORDER_STATUS ='processing') and  to_days(TIME_END) = to_days(now())  
+ ) and  to_days(TIME_END) = to_days(now())  
  
 staticsTradeByChannel
 ===
@@ -133,3 +133,23 @@ and td.BIZ_TYPE=#bizType#
 and td.MERCHANT_NO=mi.MERC_NUM and mi.SETTLE_WAY=#settleWay#
 and  td.channel_code in (select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(ci.id)))) as totalTradeNum 
 from CHANNEL_INFO_T ci 
+
+staticsTradeByMerInfo
+===
+select * from TRADE_DATA_T where 
+channel_code in (select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(#channelId#))) 
+and order_status='success' and DATE_FORMAT(TIME_END,'%Y-%m-%d')=#staticsDate#
+
+selectByMerMumAndOrderStatusAndEDate
+===
+select * from TRADE_DATA_T where MERCHANT_NO=#merNum# 
+@if(!isEmpty(orderStatus)){
+and ORDER_STATUS=#orderStatus# 
+@}
+and to_days(TIME_END) = to_days(#eDate#)
+
+sumTradeAmountByDate
+===
+
+select sum(TRADE_AMOUNT) from TRADE_DATA_T where  MERCHANT_NO=#merNum# and (ORDER_STATUS ='success'
+ ) and  to_days(TIME_END) = to_days(#date#)  

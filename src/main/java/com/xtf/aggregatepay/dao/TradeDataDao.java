@@ -28,6 +28,11 @@ public interface TradeDataDao extends BaseMapper<TradeData> {
 
     BigDecimal sumTradeAmount(@Param("merNum") String merNum);
 
+    BigDecimal sumTradeAmountByDate(@Param("merNum") String merNum,@Param("date") String date);
+
     List<ChannelInfo> staticsTradeByChannel(@Param("staticsDate") String staticsDate,@Param("bizType") String bizType,@Param("settleWay") String settleWay);
 
+    List<TradeData> staticsTradeByMerInfo(@Param("channelId") Integer channelId,@Param("staticsDate") String staticsDate);
+
+    List<TradeData> selectByMerMumAndOrderStatusAndEDate(@Param("merNum") String merNum,@Param("orderStatus") String orderStatus,@Param("eDate") String eDate);
 }

@@ -85,7 +85,7 @@ public class TradeClient {
                 returnResCode = (String) retMap.get("respCode");
                 if (httpResponse.getStatus() != 200) {
                     log.error("下游交易回调响应失败，响应码 {},执行重试", httpResponse.getStatus());
-                } else if (returnResCode == null || returnResCode == Consts.SYS_COMMON_SUCCESS_CODE) {
+                } else if (returnResCode == null || returnResCode.equals( Consts.SYS_COMMON_SUCCESS_CODE)) {
                     i = 3;
                     log.info("下游交易回调成功");
                 }

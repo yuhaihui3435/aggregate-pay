@@ -33,6 +33,8 @@ public class AfterStartupRunner implements ApplicationRunner
     private ApCodeService apCodeService;
     @Value("${pic.path}")
     private String picPath;
+    @Value("${trade.txt.path}")
+    private String tradeTxtPath;
 
 
 
@@ -42,7 +44,10 @@ public class AfterStartupRunner implements ApplicationRunner
         //创建上传图片保存路径
         File file=new File(picPath);
         if (!file.exists())
-            file.mkdir();
+            file.mkdirs();
+        file=new File(picPath);
+        if(!file.exists())
+            file.mkdirs();
     }
 
     private void allAddInCache(){

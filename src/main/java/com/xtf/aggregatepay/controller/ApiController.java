@@ -220,7 +220,7 @@ public class ApiController extends BaseController {
             cRateCode=channelInfo.getTsRateCode();
         }
 
-        if(Integer.parseInt(cRateCode)<Integer.parseInt(rateCode)){
+        if(StrUtil.isNotBlank(rateCode)&&(Integer.parseInt(cRateCode)<Integer.parseInt(rateCode))){
             throw new LogicException("商户费率不能低于渠道费率");
         }
 
@@ -394,6 +394,7 @@ public class ApiController extends BaseController {
         ret.put("merNo",tradedata.getMerchantNo());
         ret.put("merOrder",tradedata.getMerOrder());
         ret.put("orderStatus",tradedata.getOrderStatus());
+        ret.put("tradeAmount",tradedata.getTradeAmount());
         return ret;
     }
     @PostMapping("/test")
@@ -417,7 +418,7 @@ public class ApiController extends BaseController {
         pageQuery.setPageSize(pageSize);
         pageQuery.setParas(merInfo);
 
-        merInfo.setDataStatus(Consts.STATUS.NORMAL.getVal());
+//        merInfo.setDataStatus(Consts.STATUS.NORMAL.getVal());
         pageQuery=merInfoService.page("merInfo.sample",MerInfo.class,pageQuery);
 
         return ApiResp.builder().jsonData(pageQuery).respCode(Consts.SYS_COMMON_SUCCESS_CODE).build();

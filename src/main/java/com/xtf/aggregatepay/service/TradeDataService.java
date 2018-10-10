@@ -2,6 +2,7 @@ package com.xtf.aggregatepay.service;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.mail.MailUtil;
 import com.alibaba.fastjson.JSON;
@@ -13,10 +14,8 @@ import com.xtf.aggregatepay.dao.TradeDataDao;
 import com.xtf.aggregatepay.dto.TradeResp;
 import com.xtf.aggregatepay.entity.*;
 import com.xtf.aggregatepay.util.APUtil;
-import com.xtf.aggregatepay.util.EhcacheUtil;
 import com.xtf.aggregatepay.util.Sha256;
 import lombok.extern.log4j.Log4j2;
-import org.apache.tomcat.util.bcel.Const;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,11 +23,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 简介
@@ -55,10 +52,19 @@ public class TradeDataService extends BaseService<TradeData> {
     private ChannelInfoService channelInfoService;
     @Value("${tradeCallback.url}")
     private String tradeCallbackUrl;
+    @Value("${notify.trade.email}")
+    private String notifyTradeEmail;
+    @Value("${trade.txt.path}")
+    private String txtPath;
     @Autowired
     private TradeClient tradeClient;
     @Autowired
     private ChannelDayStatisticsService channelDayStatisticsService;
+    @Autowired
+    private MerInfoService merInfoService;
+    @Autowired
+    private ChannelBrokerageService channelBrokerageService;
+
 
     /**
      * 实时计算商户当日总交易额度，交易状态为 完成，处理中的
@@ -84,8 +90,11 @@ public class TradeDataService extends BaseService<TradeData> {
         BigDecimal maxAmountOfDay=channelInfo.getCeilingOfDay();
         BigDecimal tradeAmount=new BigDecimal(tradeData.getTradeAmount()).divide(new BigDecimal(100));
         BigDecimal merSumAmountNow=merSumTradeAmountNow(merInfo.getMercNum());
+        if(merSumAmountNow!=null) {
+            log.info("当前得交易总额度为{}", merSumAmountNow.divide(new BigDecimal(100)));
+        }
         if(tradeAmount.compareTo(maxAmount)!=-1)throw new LogicException("单笔交易金额超过上限,上限为:"+maxAmount);
-        if(merSumAmountNow!=null&&merSumAmountNow.compareTo(maxAmountOfDay)!=-1)throw new LogicException("交易金额已经超过今日上限,上限为："+maxAmountOfDay);
+        if(merSumAmountNow!=null&&merSumAmountNow.divide(new BigDecimal(100)).compareTo(maxAmountOfDay)!=-1)throw new LogicException("交易金额已经超过今日上限,上限为："+maxAmountOfDay);
         if(Consts.BIZ_TYPE.valueOf(tradeData.getBizType())==null)throw new LogicException("交易方式错误");
         //设置交易相关数据
         log.info("开始交易数据整理");
@@ -95,6 +104,8 @@ public class TradeDataService extends BaseService<TradeData> {
         String str=JSON.toJSONString(tradeData);
         Map<String,String> param=JSON.parseObject(str,Map.class);
         param.remove("downCallBackUrl");
+        param.remove("tails");
+
         String sign=Sha256.sha256ByAgentKey(param,APUtil.getAgentKey());
         param.put("sign",sign);
         log.info("订单号 {} ，交易数据为:{}",tradeData.getMerOrder(),param);
@@ -145,7 +156,7 @@ public class TradeDataService extends BaseService<TradeData> {
         else
             tradeData.setOrderStatus(tradeResp.getOrderStatus());
         updateTplById(tradeData);
-        log.info("订单状态查询，商户号 $} ,订单号 {}，订单状态为 {}",tradeData.getMerchantNo(),tradeData.getMerOrder(),tradeData.getOrderStatus());
+        log.info("订单状态查询，商户号 {} ,订单号 {}，订单状态为 {}",tradeData.getMerchantNo(),tradeData.getMerOrder(),tradeData.getOrderStatus());
         return tradeData;
     }
 
@@ -153,47 +164,51 @@ public class TradeDataService extends BaseService<TradeData> {
 
         if(StrUtil.isBlank(settleWay))throw new LogicException("渠道交易统计操作，结算方式必填");
         List<ChannelInfo> channelInfoList=tradeDataDao.staticsTradeByChannel(staticsDate,bizType,settleWay);
+        StringBuilder stringBuilder=new StringBuilder();
 //        StringBuilder stringBuilder=new StringBuilder();
 //        stringBuilder.append("<table>").append("<tr>").append("<td>统计日期</td><td>渠道编号</td><td>渠道名称</td><td>结算方式</td><td>交易金额</td><td>交易数量</td>").append("</tr>");
         channelInfoList.stream().forEach(channelInfo -> {
-            if(channelInfo.get("totalTradeAmount")!=null) {
-                ChannelDayStatistics channelDayStatistics = channelDayStatisticsService.tplOne(ChannelDayStatistics.builder().statisticsDay(DateUtil.parse(staticsDate, "yyyy-MM-dd")).settlyType(settleWay).build());
+            if(channelInfo.get("totaltradeamount")!=null) {
+                ChannelDayStatistics channelDayStatistics = channelDayStatisticsService.tplOne(ChannelDayStatistics.builder().channelCode(channelInfo.getCode()).statisticsDay(DateUtil.parse(staticsDate, "yyyy-MM-dd")).settlyType(settleWay).build());
                 if (channelDayStatistics != null) channelDayStatisticsService.del(channelDayStatistics.getId());
                 String cRateCode = null;
-                String rateCode = null;
+                String rate = null;
                 int zs = 0;
                 if (settleWay.equals(Consts.SETTLEWAY.T1.name())) {
                     cRateCode = channelInfo.getT1RateCode();
-                    rateCode = APUtil.getT1RateCode();
+                    rate = APUtil.getT1Rate();
                 } else {
                     cRateCode = channelInfo.getTsRateCode();
-                    rateCode = APUtil.getTsRateCode();
+                    rate = APUtil.getTsRate();
                 }
                 log.info("商户结算方式{},商户费率编号{}", settleWay, cRateCode);
                 channelDayStatistics = new ChannelDayStatistics();
                 channelDayStatistics.setChannelCode(channelInfo.getCode());
                 channelDayStatistics.setSettlyType(settleWay);
-                channelDayStatistics.setTradeAmount((BigDecimal) channelInfo.get("totalTradeAmount"));
-                channelDayStatistics.setTradeNum((Integer) channelInfo.get("totalTradeNum"));
-                BigDecimal b1 = APUtil.getRate(cRateCode).subtract(APUtil.getRate(rateCode));
-                BigDecimal b2 = APUtil.getZs(cRateCode).subtract(APUtil.getZs(rateCode));
+                channelDayStatistics.setTradeAmount((BigDecimal) channelInfo.get("totaltradeamount"));
+                channelDayStatistics.setTradeNum(((Long) channelInfo.get("totaltradenum")).intValue());
+                BigDecimal b1 = APUtil.getRate(cRateCode).subtract(new BigDecimal(rate));
+                BigDecimal b2 = APUtil.getZs(cRateCode).subtract(new BigDecimal(APUtil.getTsZs()));
                 BigDecimal b3 = b1.multiply(channelDayStatistics.getTradeAmount().divide(new BigDecimal(100)));//交易手续费
+                b3=b3.setScale(2, BigDecimal.ROUND_HALF_UP);
                 BigDecimal b4 = b2.multiply(new BigDecimal(channelDayStatistics.getTradeNum()));//交易增收
+                b4=b4.setScale(2,BigDecimal.ROUND_HALF_UP);
                 channelDayStatistics.setProfit(b3.add(b4));
                 channelDayStatistics.setStatisticsDay(DateUtil.parse(staticsDate, "yyyy-MM-dd"));
                 channelDayStatisticsService.insertAutoKey(channelDayStatistics);
-
+                MailUtil.send(channelInfo.getEmail(),"每日渠道交易数据",channelInfo.getCode()+","+staticsDate+","+channelDayStatistics.getTradeAmount()+","+channelDayStatistics.getTradeNum(),false);
 //                stringBuilder.append("<tr>").append("<td>").append(staticsDate).append("</td>").append("<td>").append(channelInfo.getCode()).append("</td>")
 //                        .append("<td>").append(channelInfo.getName()).append("</td>")
 //                        .append("<td>").append(settleWay).append("</td>")
 //                        .append("<td>").append(channelDayStatistics.getTradeAmount()).append("</td>")
 //                        .append("<td>").append(channelDayStatistics.getTradeNum()).append("</td>");
-
+                stringBuilder.append(channelInfo.getCode()).append(",").append(staticsDate).append(",").append(channelDayStatistics.getTradeAmount()).append(",").append(channelDayStatistics.getTradeNum()).append(",").append(channelDayStatistics.getProfit()).append("</br>");
                 log.info("{}交易金额{},交易笔数{},交易手续费{},交易增收{},profit={}", staticsDate, channelDayStatistics.getTradeAmount(), channelDayStatistics.getTradeNum(), b3, b4, channelDayStatistics.getProfit());
             }
         });
 
 
+        sendChannelTradeEmail(stringBuilder);
 
 
 
@@ -202,7 +217,7 @@ public class TradeDataService extends BaseService<TradeData> {
     public void channelT1TaskSchedule(){
         log.info("渠道T1统计开始");
         DateTime dateTime=DateUtil.yesterday();
-        staticsChannelTradeInDay("2018-09-12",null,Consts.SETTLEWAY.T1.name());
+        staticsChannelTradeInDay(dateTime.toDateStr(),null,Consts.SETTLEWAY.T1.name());
         log.info("渠道T1统计结束");
     }
 
@@ -214,5 +229,108 @@ public class TradeDataService extends BaseService<TradeData> {
         log.info("渠道Ts统计结束");
     }
 
+
+    @Scheduled(cron = "0 1 0 * * ?")
+    public void channelBrokerageTaskSchedule(){
+        log.info("渠道佣金统计开始");
+        DateTime dateTime=DateUtil.yesterday();
+        staticsChannelTradeBrokerageInDay(null,dateTime.toDateStr());
+        log.info("渠道佣金统计结束");
+    }
+
+    public void staticsChannelTradeBrokerageInDay(Integer channelId,String staticsDate){
+        log.info("渠道佣金计算开始");
+        Map<String,ChannelBrokerage> emailData=new HashMap<>();
+        if(channelId==null){
+            List<ChannelInfo> channelInfos=channelInfoService.tpl(ChannelInfo.builder().status(Consts.STATUS.NORMAL.getVal()).build());
+            channelInfos.stream().forEach(channelInfo -> {
+                emailData.put(channelInfo.getCode(),calBrokerage(channelInfo,staticsDate));
+
+            });
+        }else{
+            ChannelInfo channelInfo=channelInfoService.one(channelId);
+            emailData.put(channelInfo.getCode(),calBrokerage(channelInfo,staticsDate));
+        }
+        try {
+            sendBrokerageEmail(emailData);
+        }catch (Exception e){
+            log.error("邮件发送失败 {}",e.getMessage());
+        }
+    }
+
+    private ChannelBrokerage calBrokerage(ChannelInfo channelInfo,String staticsDate){
+        List<TradeData> tradeDataList=tradeDataDao.staticsTradeByMerInfo(channelInfo.getId(),staticsDate);
+        log.info("渠道{},于{},一共产生了{}交易",channelInfo.getCode(),staticsDate,tradeDataList.size());
+        BigDecimal brokerage=new BigDecimal(0);
+
+        for(TradeData tradeData:tradeDataList) {
+            MerInfo merInfo = merInfoService.findByMercNum(tradeData.getMerchantNo());
+            BigDecimal b1 = APUtil.getRate(merInfo.getRateCode());//商户费率
+            BigDecimal b2 = APUtil.getZs(merInfo.getRateCode());//商户增收
+            BigDecimal b3 = null, b4 = null;//渠道费率，渠道增收
+            BigDecimal tAmount = new BigDecimal(tradeData.getTradeAmount()).divide(new BigDecimal(100));
+            if (merInfo.getSettleWay().equals(Consts.SETTLEWAY.Ts.name())) {
+                b3 = APUtil.getRate(channelInfo.getTsRateCode());//渠道费率
+                b4 = APUtil.getZs(channelInfo.getTsRateCode());//渠道增收
+            } else {
+                b3 = APUtil.getRate(channelInfo.getT1RateCode());
+                b4 = APUtil.getZs(channelInfo.getT1RateCode());
+            }
+
+            brokerage = brokerage.add(tAmount.multiply(b1.subtract(b3))).add(b2.subtract(b4));
+        }
+        brokerage=brokerage.setScale(2, BigDecimal.ROUND_HALF_UP);
+        log.info("渠道{},于{}，一共产生了交易佣金{}",channelInfo.getCode(),staticsDate,brokerage.toString());
+        ChannelBrokerage channelBrokerage=channelBrokerageService.tplOne(ChannelBrokerage.builder().brokerageDay(staticsDate).channelCode(channelInfo.getCode()).build());
+        if(channelBrokerage!=null)channelBrokerageService.del(channelBrokerage.getId());
+
+        channelBrokerage=ChannelBrokerage.builder().channelCode(channelInfo.getCode()).brokerageAmount(brokerage.toString()).brokerageDay(staticsDate).createdTime(new Date()).build();
+        channelBrokerageService.insertAutoKey(channelBrokerage);
+        return channelBrokerage;
+    }
+
+    public void staticsMerTrade(String sDate){
+        List<MerInfo> merInfos=merInfoService.tpl(MerInfo.builder().dataStatus(Consts.STATUS.NORMAL.getVal()).status(Consts.MER_STATUS.SHTG.name()).build());
+        merInfos.stream().forEach(merInfo -> {
+            List<TradeData> list=tradeDataDao.selectByMerMumAndOrderStatusAndEDate(merInfo.getMercNum(),Consts.SYS_COMMON_SUCCESS_CODE,sDate);
+
+            List<StringBuilder> stringBuilders=new ArrayList<>();
+            stringBuilders.add(new StringBuilder().append("订单编号").append("|").append("订单金额").append("|").append("支付方式").append("|").append("银行订单号").append("|").append("订单时间"));
+            list.stream().forEach(tradeData -> {
+                StringBuilder stringBuilder=new StringBuilder();
+                stringBuilder.append(tradeData.getMerOrder()).append("|").append(new BigDecimal(tradeData.getTradeAmount()).divide(new BigDecimal(100)))
+                        .append("|").append(tradeData.getBizType()).append("|").append(tradeData.getBankOrder()).append("|").append(tradeData.getTimeEnd());
+                stringBuilders.add(stringBuilder);
+            });
+
+            if(!list.isEmpty()) {
+                BigDecimal bigDecimal = tradeDataDao.sumTradeAmountByDate(merInfo.getMercNum(), sDate);
+                bigDecimal = (bigDecimal == null) ? new BigDecimal("0") : bigDecimal;
+                StringBuilder stringBuilder = new StringBuilder("总交易金额" + bigDecimal.divide(new BigDecimal(100))).append("交易数量" + list.size());
+                stringBuilders.add(stringBuilder);
+                File file = FileUtil.newFile(txtPath + merInfo.getMercNum() + "_" + sDate + "_" + System.currentTimeMillis() + ".txt");
+                FileUtil.appendUtf8Lines(stringBuilders, file);
+                MailUtil.send(merInfo.getEmail(), sDate + "交易数据", "查看附件", false, file);
+            }
+
+        });
+    }
+
+    private void sendBrokerageEmail(Map<String,ChannelBrokerage> map){
+        List<String> targetEmail=StrUtil.splitTrim(notifyTradeEmail,";");
+        StringBuilder stringBuilder=new StringBuilder();
+        for (Map.Entry<String, ChannelBrokerage> entry : map.entrySet()) {
+            String key = entry.getKey().toString();
+            ChannelBrokerage value = entry.getValue();
+            stringBuilder.append(key).append(",").append(value.getBrokerageAmount()).append(",").append(value.getBrokerageDay()).append("</br>");
+        }
+        MailUtil.sendHtml(targetEmail,"每日渠道分润数据",stringBuilder.toString());
+    }
+
+
+    private void sendChannelTradeEmail(StringBuilder stringBuilder){
+        List<String> targetEmail=StrUtil.splitTrim(notifyTradeEmail,";");
+        MailUtil.sendHtml(targetEmail,"每日渠道交易利润数据",stringBuilder.toString());
+    }
 
 }

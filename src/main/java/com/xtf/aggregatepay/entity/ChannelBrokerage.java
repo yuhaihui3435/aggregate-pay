@@ -13,7 +13,7 @@ import org.beetl.sql.core.annotatoin.Table;
 * 
 * gen by beetlsql 2018-10-07
 */
-@Table(name="aggregate_pay_db.CHANNEL_BROKERAGE_T")
+@Table(name="CHANNEL_BROKERAGE_T")
 @Builder
 @Data
 public class ChannelBrokerage extends com.xtf.aggregatepay.core.BaseEntity  {
