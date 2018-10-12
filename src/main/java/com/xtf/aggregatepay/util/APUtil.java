@@ -1,14 +1,18 @@
 package com.xtf.aggregatepay.util;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.mail.MailUtil;
 import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.entity.DictItem;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -121,8 +125,6 @@ public class APUtil {
         str="0."+str;
         BigDecimal bigDecimal=new BigDecimal(str);
         return bigDecimal;
-
-
     }
 
     public static BigDecimal getZs(String rateCode){
@@ -132,14 +134,24 @@ public class APUtil {
     }
 
     public static void main(String[] args) {
-        System.out.printf(""+getRate("10004401"));
+       // System.out.printf(""+getRate("10004401"));
 //        System.out.printf(""+getZs("10004511"));
 //        System.out.println(getUUID());
 
-//        MailUtil.send("125227112@qq.com","你好萧霆峰","这事一段完事",false);
+        MailUtil.send("125227112@qq.com","你好萧霆峰","这事一段完事",false);
 
 
 //        System.out.println(new String[]{"==="});
+
+
+//        List<String> l=new ArrayList<>();
+//        l.add("\n沈阳啊");
+//        FileUtil.appendUtf8Lines(l,"d://stopword.dic");
+//        List<String> list=FileUtil.readLines("d://stopword.dic","UTF-8");
+//        System.out.println(list);
+//        String s=System.getProperty("line.separator");
+//        System.out.println(s);
+
     }
 
 }

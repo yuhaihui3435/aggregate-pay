@@ -5,11 +5,13 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
+import com.xtf.aggregatepay.service.TradeDataService;
 import com.xtf.aggregatepay.util.Sha256;
 import lombok.extern.java.Log;
 import lombok.extern.log4j.Log4j2;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -20,9 +22,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = AggregatePayApplicationTests.class)//这里的Application是springboot的启动类名
+@SpringBootTest(classes = AggregatePayApplication.class)//这里的Application是springboot的启动类名
 @Log4j2
 public class MerTest {
+
+    @Autowired
+    private TradeDataService tradeDataService;
+
     @Test
     public void addMerInfo(){
         Map<String,String> merInfo=new HashMap<>();
@@ -68,7 +74,7 @@ public class MerTest {
         String param_str= JSONObject.toJSONString(param);
         System.out.println(sign);
         System.out.println(param_str);
-        HttpResponse httpResponse=HttpRequest.post("http://apt.3435.net.cn/api/addMerInfo").form("files", file,file1,file2,file3,file4).form("jsonData",param_str).form("sign",sign).execute();
+        HttpResponse httpResponse=HttpRequest.post("http://ap.3435.net.cn/api/addMerInfo").form("files", file,file1,file2,file3,file4).form("jsonData",param_str).form("sign",sign).execute();
         log.info(httpResponse.body());
     }
 
@@ -89,7 +95,7 @@ public class MerTest {
     }
     @Test
     public void queryMerStatus(){
-        HttpResponse httpResponse= HttpRequest.post("http://localhost:8085/api/queryMerStatus").form("merNo","M208915613817392528057660").execute();
+        HttpResponse httpResponse= HttpRequest.post("http://ap.3435.net.cn/api/queryMerStatus").form("merNo","M227128906438301138057125").execute();
         log.info(httpResponse.body());
     }
     @Test
@@ -107,13 +113,20 @@ public class MerTest {
     @Test
     public void callBack(){
         Map map=new HashMap();
-        map.put("merNo","M23225013781989578057046");
-        map.put("merOrder","181006121731937712");
+        map.put("merNo","M227128906438301138057125");
+        map.put("merOrder","181009181644747628");
         map.put("orderStatus","success");
-        map.put("tradeAmount","100");
-        String sign=Sha256.sha256ByAgentKey(map,"BDCFDFDFDFSFUIUOIURIUEREWFFD");
-        HttpResponse httpResponse= HttpRequest.post("http://pay-futong-back.zzc2233.com/callback/notify.php").form("merNo","M23225013781989578057046").form("tradeAmount","100").form("merOrder","181006121731937712").form("orderStatus","success").form("sign",sign).execute();
+        map.put("tradeAmount","133");
+        String sign=Sha256.sha256ByAgentKey(map,"09606fa7965546b3adfa5759e943f08c");
+        HttpResponse httpResponse= HttpRequest.post("http://pay-futong-back.zzc2233.com/callback/notify.php").form("merNo","M227128906438301138057125").form("tradeAmount","133").form("merOrder","181009181644747628").form("orderStatus","success").form("sign",sign).execute();
         log.info(httpResponse.body());
+    }
+
+    @Test
+    public void statics(){
+//        tradeDataService.staticsChannelTradeInDay("2018-10-09",null,Consts.SETTLEWAY.Ts.name());
+//        tradeDataService.staticsChannelTradeBrokerageInDay(null,"2018-10-09");
+        tradeDataService.staticsMerTrade("2018-10-09");
     }
 
 }
