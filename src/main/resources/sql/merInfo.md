@@ -129,5 +129,11 @@ condition
     @if(!isEmpty(eCreateTime)){
      and createdTime<=#eCreateTime#
     @}
-	
+    
+ pickMerInfo
+ ===
+ select m.* from PRODUCT_T p,MER_INFO_T m where p.INDUSTRY_CODE=m.CUSTOM_MCC_TYPE 
+ and  m.CHANNEL_CODE=#channelCode# and #price#>=p.min_price and #price# <p.max_price 
+ and (select Count(id) from MER_USING_T where mer_no=m.MERC_NUM )<8 
+ and (select TIMESTAMPDIFF(SECOND,use_time,NOW()) from MER_USING_T where mer_no=m.MERC_NUM)<15 
 	

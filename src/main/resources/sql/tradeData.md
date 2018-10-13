@@ -153,3 +153,23 @@ sumTradeAmountByDate
 
 select sum(TRADE_AMOUNT) from TRADE_DATA_T where  MERCHANT_NO=#merNum# and (ORDER_STATUS ='success'
  ) and  to_days(TIME_END) = to_days(#date#)  
+ 
+ 
+selectTradeForChannelByInDateAndStatus
+===
+select 
+@pageTag(){
+#use("cols")#
+@}
+from TRADE_DATA_T where 
+channel_code in (select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(#channelId#))) 
+@if(!isEmpty(orderStatus)){
+    and ORDER_STATUS=#orderStatus# 
+@}
+@if(!isEmpty(eDate)){
+and DATE_FORMAT(TIME_END,'%Y-%m-%d')<=#eDate# 
+@}
+@if(!isEmpty(sDate)){
+and DATE_FORMAT(TIME_END,'%Y-%m-%d')>=#sDate#
+@}
+ 
