@@ -11,7 +11,7 @@ public class BeetlGenCode {
 
     public static void main(String[] args) throws Exception {
 
-        ConnectionSource source = ConnectionSourceHelper.getSimple("com.mysql.jdbc.Driver", "jdbc:mysql://140.143.10.128:53306/aggregate_pay_db?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&zeroDateTimeBehavior=convertToNull", "ht", "Yuhaihui@3435#$(*&");
+        ConnectionSource source = ConnectionSourceHelper.getSimple("com.mysql.jdbc.Driver", "jdbc:mysql://140.143.10.128:53306/aggregate_pay_pro_db?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&zeroDateTimeBehavior=convertToNull", "ht", "Yuhaihui@3435#$(*&");
         DBStyle mysql = new MySqlStyle();
         SQLLoader loader = new ClasspathLoader("/sql");
         DelSuffixConversion nc = new  DelSuffixConversion();
@@ -20,7 +20,7 @@ public class BeetlGenCode {
         config.setIgnorePrefix("_T");
         config.preferBigDecimal(true);
         config.setBaseClass("com.xtf.aggregatepay.core.BaseEntity");
-        String table="CHANNEL_DAY_STATISTICS_T";
+        String table="PRODUCT_T";
         sqlManager.genPojoCode(table,"com.xtf.aggregatepay.entity",config);
         sqlManager.genSQLFile(table,config);
     }

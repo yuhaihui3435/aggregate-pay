@@ -1,5 +1,8 @@
 package com.xtf.aggregatepay.service;
 
+import cn.hutool.core.math.MathUtil;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
@@ -7,6 +10,7 @@ import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.client.MerchantClient;
 import com.xtf.aggregatepay.core.BaseService;
 import com.xtf.aggregatepay.core.LogicException;
+import com.xtf.aggregatepay.dao.MerInfoDao;
 import com.xtf.aggregatepay.entity.ChannelInfo;
 import com.xtf.aggregatepay.entity.MerBankInfo;
 import com.xtf.aggregatepay.entity.MerInfo;
@@ -18,7 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -34,6 +40,8 @@ public class MerInfoService extends BaseService<MerInfo> {
     private MerBankInfoService merBankInfoService;
     @Autowired
     private MerPicService merPicService;
+    @Autowired
+    private MerInfoDao merInfoDao;
 
     /**
      *
@@ -183,6 +191,17 @@ public class MerInfoService extends BaseService<MerInfo> {
                 update(merInfo);
             }
         return merInfo;
+    }
+    //商户号选择
+    public  MerInfo pickMerInfo(String channelCode,BigDecimal price){
+        log.info("开始进行商户的筛选");
+        List<MerInfo> merInfoList=merInfoDao.pickMerInfo(channelCode,price);
+        log.info("得到符合条件的商户 :::::::::{}个:::::::::,开始随机获取商户");
+        if(merInfoList.size()==0)return null;
+        int size=merInfoList.size();
+        int index=RandomUtil.randomInt(size);
+        log.info("筛选商户处理结束");
+        return merInfoList.get(index);
     }
 
 

@@ -57,6 +57,8 @@ public class ApiController extends BaseController {
     private TradeDataService tradeDataService;
     @Value("${tradeCallback.url}")
     private String tradeCallbackUrl;
+    @Autowired
+    private MerUsingService merUsingService;
 
 //    @PostMapping(value = "/addMercInfo")
 //    public ApiResp<MerInfo> addMercInfo(ApiReq apiReq){
@@ -351,7 +353,9 @@ public class ApiController extends BaseController {
         tradeData.setOrderStatus(Consts.TRADE_STATUS.SUCCESS.getKey());
         tradeDataService.updateTplById(tradeData);
         log.info("交易数据更新成功 交易订单号: {},商户号 {},交易金额 {}", merOrder, merNo, amount);
-
+        //清理商户账户占用表数据
+        MerUsing merUsing=merUsingService.tplOne(MerUsing.builder().merNo(merNo).orderNo(merOrder).build());
+        if(merUsing!=null)merUsingService.del(merUsing.getId());
         String downCallbackUrl = tradeData.getDownCallBackUrl();
         if (StrUtil.isBlank(downCallbackUrl)) log.error("下游回调地址未设置");
         else {
@@ -419,7 +423,7 @@ public class ApiController extends BaseController {
         pageQuery.setParas(merInfo);
 
 //        merInfo.setDataStatus(Consts.STATUS.NORMAL.getVal());
-        pageQuery=merInfoService.page("merInfo.sample",MerInfo.class,pageQuery);
+        pageQuery=merInfoService.page("merInfo.sample",pageQuery);
 
         return ApiResp.builder().jsonData(pageQuery).respCode(Consts.SYS_COMMON_SUCCESS_CODE).build();
     }
@@ -432,6 +436,15 @@ public class ApiController extends BaseController {
         map.put("mercNum",merInfo.getMercNum());
         map.put("status",merInfo.getStatus());
         return map;
+    }
+    @PostMapping("/queryTradeByChannelCode")
+    @ResponseBody
+    public ApiResp queryTradeByChannelCode(@RequestParam(defaultValue = "1") long pageNumber,@RequestParam(defaultValue = "10") long pageSize, String channelCode,String sDate,String eDate,String status){
+        PageQuery pageQuery=new PageQuery();
+        pageQuery.setPageNumber(pageNumber);
+        pageQuery.setPageSize(pageSize);
+        pageQuery =tradeDataService.queryTradeByChannelInDateAndStatus(pageQuery,channelCode,sDate,eDate,status);
+        return ApiResp.builder().jsonData(pageQuery).respCode(Consts.SYS_COMMON_SUCCESS_CODE).build();
     }
 
 }

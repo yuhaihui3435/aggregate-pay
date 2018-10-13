@@ -14,8 +14,10 @@ import com.xtf.aggregatepay.dao.TradeDataDao;
 import com.xtf.aggregatepay.dto.TradeResp;
 import com.xtf.aggregatepay.entity.*;
 import com.xtf.aggregatepay.util.APUtil;
+import com.xtf.aggregatepay.util.EhcacheUtil;
 import com.xtf.aggregatepay.util.Sha256;
 import lombok.extern.log4j.Log4j2;
+import org.beetl.sql.core.engine.PageQuery;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -98,6 +100,20 @@ public class TradeDataService extends BaseService<TradeData> {
         if(Consts.BIZ_TYPE.valueOf(tradeData.getBizType())==null)throw new LogicException("交易方式错误");
         //设置交易相关数据
         log.info("开始交易数据整理");
+        //挑选商户号
+        String orginMerNo=tradeData.getMerchantNo();
+        if(channelInfo!=null&&channelInfo.getType().equals("2")){
+            MerInfo merInfo1=null;
+            for(int i=0;i<5;i++){
+                merInfo1=merInfoService.pickMerInfo(channelInfo.getCode(),tradeAmount);
+                if(merInfo1!=null)break;
+            }
+            if(merInfo1==null)throw new LogicException("获取二维码失败，请重试");
+            log.info("筛选到的商户编号为 {}",merInfo1.getMercNum());
+            tradeData.setMerchantNo(merInfo1.getMercNum());
+        }
+
+
         tradeData.setCallBackUrl(tradeCallbackUrl);
         tradeData.setTradeType(Consts.TRADE_TYPE.XXZSCAN.getVal());
         tradeData.setAgentNo(APUtil.getAgentNum());
@@ -114,6 +130,8 @@ public class TradeDataService extends BaseService<TradeData> {
         tradeData.setChannelCode(merInfo.getChannelCode());
         tradeData.setOrderStatus(Consts.TRADE_STATUS.PROCESSING.getKey());
         insertAutoKey(tradeData);
+        if(channelInfo.getType().equals("2"))
+            tradeData.setMerchantNo(orginMerNo);//将原始商户编号回传给下游
         return tradeData;
     }
 
@@ -132,6 +150,7 @@ public class TradeDataService extends BaseService<TradeData> {
      * @param map
      */
     public void notifyDown(String downCallbackUrl,Map map){
+
         tradeClient.downCallback(downCallbackUrl,map);
     }
 
@@ -238,6 +257,8 @@ public class TradeDataService extends BaseService<TradeData> {
         log.info("渠道佣金统计结束");
     }
 
+
+
     public void staticsChannelTradeBrokerageInDay(Integer channelId,String staticsDate){
         log.info("渠道佣金计算开始");
         Map<String,ChannelBrokerage> emailData=new HashMap<>();
@@ -331,6 +352,33 @@ public class TradeDataService extends BaseService<TradeData> {
     private void sendChannelTradeEmail(StringBuilder stringBuilder){
         List<String> targetEmail=StrUtil.splitTrim(notifyTradeEmail,";");
         MailUtil.sendHtml(targetEmail,"每日渠道交易利润数据",stringBuilder.toString());
+    }
+    //渠道下交易查询
+    public PageQuery queryTradeByChannelInDateAndStatus(PageQuery pageQuery,String channelCode, String sDate, String eDate, String status){
+        ChannelInfo channelInfo=channelInfoService.findByCode(channelCode);
+        if(channelInfo==null)throw new LogicException("渠道编号不存在");
+        HashMap query=new HashMap();
+        query.put("channelId",channelInfo.getId());
+        query.put("sDate",sDate);
+        query.put("eDate",eDate);
+        query.put("status",status);
+        pageQuery.setParas(query);
+        return page("tradeDate.selectTradeForChannelByInDateAndStatus",pageQuery);
+    }
+
+    //选择商户
+    public Product selectMer(String channelCode,Integer price){
+        DictItem dictItem= (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"mer_use_count");
+        DictItem dictItem1=(DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"mer_time_interval");
+        if(StrUtil.isBlank(dictItem.getDictItemVal()))throw new LogicException("merUserCount没有设置");
+        if(StrUtil.isBlank(dictItem1.getDictItemVal()))throw new LogicException("merTimeInterval没有设置");
+        Integer merUseCount=Integer.parseInt(dictItem.getDictItemVal());
+        Integer merTimeInterval=Integer.parseInt(dictItem1.getDictItemVal());
+
+
+
+
+        return null;
     }
 
 }

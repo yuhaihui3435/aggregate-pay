@@ -35,4 +35,6 @@ public interface TradeDataDao extends BaseMapper<TradeData> {
     List<TradeData> staticsTradeByMerInfo(@Param("channelId") Integer channelId,@Param("staticsDate") String staticsDate);
 
     List<TradeData> selectByMerMumAndOrderStatusAndEDate(@Param("merNum") String merNum,@Param("orderStatus") String orderStatus,@Param("eDate") String eDate);
+
+    List<TradeData> selectTradeForChannelByInDateAndStatus(@Param("channelId") Integer channelId,@Param("sDate") String sDate,@Param("eDate") String eDate,@Param("orderStatus") String orderStatus);
 }

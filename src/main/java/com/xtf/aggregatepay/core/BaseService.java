@@ -46,8 +46,8 @@ public abstract class BaseService<T> {
     }
 
 
-    public <T> PageQuery<T> page(String sqlId,Class<T> clazz,PageQuery<T> pageQuery ){
-        return sqlManager.pageQuery(sqlId,clazz,pageQuery);
+    public <T> PageQuery<T> page(String sqlId,PageQuery<T> pageQuery ){
+        return sqlManager.pageQuery(sqlId, (Class<T>) getTClass(),pageQuery);
     }
 
     public T one(Object id){

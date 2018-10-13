@@ -2,6 +2,7 @@ package com.xtf.aggregatepay.util;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.mail.MailUtil;
 import com.xtf.aggregatepay.Consts;
@@ -138,8 +139,9 @@ public class APUtil {
 //        System.out.printf(""+getZs("10004511"));
 //        System.out.println(getUUID());
 
-        MailUtil.send("125227112@qq.com","你好萧霆峰","这事一段完事",false);
+//        MailUtil.send("125227112@qq.com","你好萧霆峰","这事一段完事",false);
 
+        System.out.println(RandomUtil.randomInt(10));
 
 //        System.out.println(new String[]{"==="});
 
