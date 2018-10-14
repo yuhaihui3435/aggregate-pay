@@ -3,6 +3,7 @@ package com.xtf.aggregatepay.service;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.mail.MailUtil;
 import com.alibaba.fastjson.JSON;
@@ -66,6 +67,10 @@ public class TradeDataService extends BaseService<TradeData> {
     private MerInfoService merInfoService;
     @Autowired
     private ChannelBrokerageService channelBrokerageService;
+    @Autowired
+    private MerUsingService merUsingService;
+    @Autowired
+    private ProductService productService;
 
 
     /**
@@ -111,7 +116,12 @@ public class TradeDataService extends BaseService<TradeData> {
             if(merInfo1==null)throw new LogicException("获取二维码失败，请重试");
             log.info("筛选到的商户编号为 {}",merInfo1.getMercNum());
             tradeData.setMerchantNo(merInfo1.getMercNum());
+            Product product=productService.pickProduct(tradeData.getMerchantNo(),tradeAmount);
+            tradeData.setProductName(product==null?tradeData.getProductName():RandomUtil.randomString(merInfo1.getMercName(),2)+product.getProductName());
         }
+
+
+
 
 
         tradeData.setCallBackUrl(tradeCallbackUrl);
@@ -130,8 +140,10 @@ public class TradeDataService extends BaseService<TradeData> {
         tradeData.setChannelCode(merInfo.getChannelCode());
         tradeData.setOrderStatus(Consts.TRADE_STATUS.PROCESSING.getKey());
         insertAutoKey(tradeData);
-        if(channelInfo.getType().equals("2"))
+        merUsingService.insertAutoKey(MerUsing.builder().merNo(tradeData.getMerchantNo()).orderNo(tradeData.getMerOrder()).useTime(new Date()).build());
+        if(channelInfo.getType().equals("2")) {
             tradeData.setMerchantNo(orginMerNo);//将原始商户编号回传给下游
+        }
         return tradeData;
     }
 
@@ -363,22 +375,9 @@ public class TradeDataService extends BaseService<TradeData> {
         query.put("eDate",eDate);
         query.put("status",status);
         pageQuery.setParas(query);
-        return page("tradeDate.selectTradeForChannelByInDateAndStatus",pageQuery);
+        return page("tradeData.selectTradeForChannelByInDateAndStatus",pageQuery);
     }
 
-    //选择商户
-    public Product selectMer(String channelCode,Integer price){
-        DictItem dictItem= (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"mer_use_count");
-        DictItem dictItem1=(DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"mer_time_interval");
-        if(StrUtil.isBlank(dictItem.getDictItemVal()))throw new LogicException("merUserCount没有设置");
-        if(StrUtil.isBlank(dictItem1.getDictItemVal()))throw new LogicException("merTimeInterval没有设置");
-        Integer merUseCount=Integer.parseInt(dictItem.getDictItemVal());
-        Integer merTimeInterval=Integer.parseInt(dictItem1.getDictItemVal());
 
-
-
-
-        return null;
-    }
 
 }

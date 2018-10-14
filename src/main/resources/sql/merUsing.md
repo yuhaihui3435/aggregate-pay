@@ -32,5 +32,4 @@ condition
 
 delExpiredData
 ===
-delete * from MER_USING_T where TIMESTAMPDIFF(SECOND,use_time,NOW())>=#interval#
-	
+delete from MER_USING_T where TIMESTAMPDIFF(SECOND,use_time,NOW())>=#interval#

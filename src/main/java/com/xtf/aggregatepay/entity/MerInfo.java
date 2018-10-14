@@ -204,6 +204,7 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	private Date bCreateTime;
 	@Transient
 	private Date eCreateTime;
+	private String appid;
 
 
 
@@ -762,6 +763,11 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	}
 
 
-	
+	public String getAppid() {
+		return appid;
+	}
 
+	public void setAppid(String appid) {
+		this.appid = appid;
+	}
 }

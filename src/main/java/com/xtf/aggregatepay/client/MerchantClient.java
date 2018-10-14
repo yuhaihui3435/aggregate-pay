@@ -32,6 +32,8 @@ public class MerchantClient {
     private String uploadUrl;
     @Value("${xyf.url.queryMerStatus}")
     private String queryMerStatusUrl;
+    @Value("${xyf.url.merConfig}")
+    private String merConfigUrl;
     @Value("${xyf.request.timeout}")
     private int requestTimeout;
 
@@ -60,7 +62,7 @@ public class MerchantClient {
         if(httpResp.getRspCode().equals("00")){
             return (String)httpResp.getResult();
         }else{
-            log.info("图片上传失败， 错误编号 ${},错误原因 ${}",httpResp.getRspCode(),httpResp.getRspMsg());
+            log.info("图片上传失败， 错误编号 {},错误原因 {}",httpResp.getRspCode(),httpResp.getRspMsg());
             throw new LogicException(httpResp.getRspCode(),httpResp.getRspMsg());
         }
     }
@@ -88,7 +90,7 @@ public class MerchantClient {
                 if(!retSign.equals(httpResp.getSign()))throw new LoggingException(msgProp.getServerRetSign_err());
                 return (String)httpResp.getMercNum();
             }else{
-                log.info("商户进件入网处理失败， 错误编号 ${},错误原因 ${}",httpResp.getRspCode(),httpResp.getRspMsg());
+                log.info("商户进件入网处理失败， 错误编号 {},错误原因 {}",httpResp.getRspCode(),httpResp.getRspMsg());
                 throw new LogicException(httpResp.getRspCode(),httpResp.getRspMsg());
             }
         }
@@ -114,10 +116,31 @@ public class MerchantClient {
             if(httpResp.getRspCode().equals("00")){
                 return (String)httpResp.getStatus();
             }else{
-                log.info("商户状态查询失败， 错误编号 ${},错误原因 ${}",httpResp.getRspCode(),httpResp.getRspMsg());
+                log.info("商户状态查询失败， 错误编号 {},错误原因 {}",httpResp.getRspCode(),httpResp.getRspMsg());
                 throw new LogicException(httpResp.getRspCode(),httpResp.getRspMsg());
             }
         }
+    }
+
+    public String setMerAppid(Map<String,String> param){
+        String paramStr= JSONUtil.toJsonStr(param);
+        log.info("开始向xyf发送商户配置请求，数据内容为 {}",paramStr);
+        HttpResponse httpResponse=HttpRequest.post(merConfigUrl).body(paramStr).timeout(requestTimeout).execute();
+        log.info("请求成功，返回数据为："+httpResponse.body());
+        if(httpResponse.getStatus()!=200){
+            log.error("请求响应状态为："+httpResponse.getStatus()+",请求失败");
+            throw new LogicException("商户配置处理失败，请稍后重试");
+        }else{
+            String retBody=httpResponse.body();
+            HttpResp httpResp=JSONObject.parseObject(retBody,HttpResp.class);
+            if(httpResp.getRspCode().equals("00")){
+                return (String)httpResp.getResult();
+            }else{
+                log.info("商户配置处理失败， 错误编号 {},错误原因 {}",httpResp.getRspCode(),httpResp.getRspMsg());
+                throw new LogicException(httpResp.getRspCode(),httpResp.getRspMsg());
+            }
+        }
+
     }
 
 

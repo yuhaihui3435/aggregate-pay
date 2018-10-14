@@ -41,6 +41,9 @@ public interface Consts {
      enum SETTLEWAY{
          T1,Ts
      }
+     enum BOOLEAN{
+         TRUE,FALSE
+     }
 
      enum INCOMETYPE{
          normal

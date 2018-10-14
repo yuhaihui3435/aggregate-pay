@@ -22,12 +22,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = AggregatePayApplication.class)//这里的Application是springboot的启动类名
+@SpringBootTest(classes = AggregatePayApplicationTests.class)//这里的Application是springboot的启动类名
 @Log4j2
 public class MerTest {
 
-    @Autowired
-    private TradeDataService tradeDataService;
+//    @Autowired
+//    private TradeDataService tradeDataService;
 
     @Test
     public void addMerInfo(){
@@ -81,15 +81,15 @@ public class MerTest {
     @Test
     public void sendTrade(){
         Map<String,String> tradeInfo=new HashMap<>();
-        tradeInfo.put("merchantNo","M23225013781989578057046");
+        tradeInfo.put("merchantNo","M227128906438301138057125");
         tradeInfo.put("merOrder",System.nanoTime()+"");
         tradeInfo.put("productName","西红柿");
-        tradeInfo.put("tradeAmount","1");
+        tradeInfo.put("tradeAmount","10000");
         tradeInfo.put("downCallBackUrl","http://ap.3435.net.cn/api/test");
         tradeInfo.put("bizType","WECHATPAY");
         String sign=Sha256.sha256ByAgentKey(tradeInfo,"BDCFDFDFDFSFUIUOIURIUEREWFFD");
         String param_str= JSONObject.toJSONString(tradeInfo);
-        HttpResponse httpResponse= HttpRequest.post("http://localhost:9000/api/zscan").form("jsonData",param_str).form("sign",sign).execute();
+        HttpResponse httpResponse= HttpRequest.post("http://localhost:8085/api/zscan").form("jsonData",param_str).form("sign","89830490").execute();
         log.info(httpResponse.body());
 
     }
@@ -126,7 +126,7 @@ public class MerTest {
     public void statics(){
 //        tradeDataService.staticsChannelTradeInDay("2018-10-09",null,Consts.SETTLEWAY.Ts.name());
 //        tradeDataService.staticsChannelTradeBrokerageInDay(null,"2018-10-09");
-        tradeDataService.staticsMerTrade("2018-10-09");
+//        tradeDataService.staticsMerTrade("2018-10-09");
     }
 
 }

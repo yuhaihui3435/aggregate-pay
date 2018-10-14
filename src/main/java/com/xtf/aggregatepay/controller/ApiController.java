@@ -18,10 +18,14 @@ import com.xtf.aggregatepay.util.APUtil;
 import com.xtf.aggregatepay.util.EhcacheUtil;
 import com.xtf.aggregatepay.util.Sha256;
 import com.xtf.aggregatepay.util.ValidationUtil;
+import io.swagger.annotations.*;
 import lombok.extern.log4j.Log4j2;
+import org.apache.tomcat.util.bcel.Const;
 import org.beetl.sql.core.engine.PageQuery;
+import org.hibernate.validator.constraints.pl.REGON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,7 +36,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+@Api(value = "聚合支付对外API")
 @Log4j2
 @Controller
 @RequestMapping(value = "/api")
@@ -140,7 +144,8 @@ public class ApiController extends BaseController {
      * @return
      * @throws IOException
      */
-    @RequestMapping(value = "/addMerInfo")
+    @ApiOperation(value = "商户进件",notes = "新增商户进件")
+    @PostMapping(value = "/addMerInfo")
     @ResponseBody
     public ApiResp<Object> addMerAllInfo(@RequestParam("files") MultipartFile[] files, ApiReq apiReq) throws IOException, InterruptedException {
         String json = apiReq.getJsonData();
@@ -269,6 +274,7 @@ public class ApiController extends BaseController {
      * @param merNo 商户编号
      * @return
      */
+    @ApiOperation(value = "商户状态查询",notes = "通过商户编号查询商户状态，商户状态:SSTG审核通过,SHZ审核中，DDSH等待审核,SHJJ审核拒绝")
     @PostMapping(value = "/queryMerStatus")
     @ResponseBody
     public Map queryMerStatus(@RequestParam String merNo) {
@@ -285,6 +291,7 @@ public class ApiController extends BaseController {
      * @param apiReq
      * @return
      */
+    @ApiOperation(value = "主扫处理")
     @PostMapping(value = "/zscan")
     @ResponseBody
     public ApiResp zscanTrade(ApiReq apiReq) {
@@ -329,6 +336,7 @@ public class ApiController extends BaseController {
      *
      * @param map
      */
+    @ApiOperation(value = "主扫回调")
     @PostMapping(value = "/tradeCallback")
     @ResponseBody
     public void tradeCallback(@RequestBody Map<String, String> map) {
@@ -380,9 +388,10 @@ public class ApiController extends BaseController {
      * @param amount   交易金额
      * @return
      */
+    @ApiOperation(value = "订单状态查询")
     @PostMapping(value = "/queryOrderStatus")
     @ResponseBody
-    public Map queryOrderStatus(@RequestParam String merNo, @RequestParam String merOrder, @RequestParam String amount) {
+    public Map queryOrderStatus(@RequestParam String merNo, @RequestParam String merOrder, @RequestParam(required = false) String amount) {
         log.info("客户端开始进行交易状态查询，商户号为 {} ,订单号为 {},交易金额为 {}", merNo, merOrder, amount);
         TradeData tradedata = tradeDataService.queryByMerchantNoAndMerOrder(merNo, merOrder);
         if(tradedata==null){
@@ -406,14 +415,15 @@ public class ApiController extends BaseController {
     public void test(@RequestParam String merNo,@RequestParam String merOrder,@RequestParam String orderStatus){
         log.info("客户端回调的 商户号 {} ，订单号 {} 订单状态 {}",merNo,merOrder,orderStatus);
     }
-
-    @RequestMapping("/hello")
+    @ApiOperation(value = "主扫测试页面")
+    @GetMapping(value = "/hello")
     public String index(){
         return "scan";
     }
+    @ApiOperation(value = "查询商户列表")
     @PostMapping("/queryMerList")
     @ResponseBody
-    public ApiResp queryMerList(@RequestParam(defaultValue = "1") long pageNumber,@RequestParam(defaultValue = "10") long pageSize, MerInfo merInfo ){
+    public ApiResp queryMerList(@RequestParam(defaultValue = "1") long pageNumber,@RequestParam(defaultValue = "10") long pageSize,  MerInfo merInfo ){
         if(StrUtil.isBlank(merInfo.getChannelCode())){
             return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("渠道号必填").build();
         }
@@ -427,7 +437,7 @@ public class ApiController extends BaseController {
 
         return ApiResp.builder().jsonData(pageQuery).respCode(Consts.SYS_COMMON_SUCCESS_CODE).build();
     }
-
+    @ApiOperation(value = "商户状态查询")
     @PostMapping(value = "/queryMer")
     @ResponseBody
     public Map queryMer(@RequestParam String merNo) {
@@ -437,14 +447,34 @@ public class ApiController extends BaseController {
         map.put("status",merInfo.getStatus());
         return map;
     }
+    @ApiOperation(value = "查询渠道下所有交易")
     @PostMapping("/queryTradeByChannelCode")
     @ResponseBody
-    public ApiResp queryTradeByChannelCode(@RequestParam(defaultValue = "1") long pageNumber,@RequestParam(defaultValue = "10") long pageSize, String channelCode,String sDate,String eDate,String status){
+    public ApiResp queryTradeByChannelCode(@RequestParam(defaultValue = "1") long pageNumber, @RequestParam(defaultValue = "10") long pageSize, @RequestParam String channelCode, @RequestParam(required = false) String sDate, @RequestParam(required = false) String eDate,@RequestParam(required = false) String status){
         PageQuery pageQuery=new PageQuery();
         pageQuery.setPageNumber(pageNumber);
         pageQuery.setPageSize(pageSize);
         pageQuery =tradeDataService.queryTradeByChannelInDateAndStatus(pageQuery,channelCode,sDate,eDate,status);
         return ApiResp.builder().jsonData(pageQuery).respCode(Consts.SYS_COMMON_SUCCESS_CODE).build();
+    }
+
+    /**
+     * 商户配置
+     * @param merNo
+     * @param appid
+     * @return
+     */
+    @ApiOperation(value = "商户公众号配置")
+    @PostMapping(value = "/setMerAppid")
+    @ResponseBody
+    public ApiResp setMerAppid(@RequestParam String merNo,@RequestParam String appid){
+        if (StrUtil.isBlank(merNo))return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("商户号必填").build();
+        if (StrUtil.isBlank(appid))return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("Appid必填").build();
+        String ret=merInfoService.setMerAppid(merNo,appid);
+        if(ret.equals(Consts.BOOLEAN.TRUE))
+            return ApiResp.builder().respCode(Consts.SYS_COMMON_SUCCESS_CODE).respMsg("商户配置成功").build();
+        else
+            return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("商户配置失败").build();
     }
 
 }

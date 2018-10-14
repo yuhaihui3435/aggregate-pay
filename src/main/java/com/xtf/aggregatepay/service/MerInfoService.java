@@ -12,9 +12,11 @@ import com.xtf.aggregatepay.core.BaseService;
 import com.xtf.aggregatepay.core.LogicException;
 import com.xtf.aggregatepay.dao.MerInfoDao;
 import com.xtf.aggregatepay.entity.ChannelInfo;
+import com.xtf.aggregatepay.entity.DictItem;
 import com.xtf.aggregatepay.entity.MerBankInfo;
 import com.xtf.aggregatepay.entity.MerInfo;
 import com.xtf.aggregatepay.util.APUtil;
+import com.xtf.aggregatepay.util.EhcacheUtil;
 import com.xtf.aggregatepay.util.Sha256;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -171,7 +173,7 @@ public class MerInfoService extends BaseService<MerInfo> {
      * @return
      */
     public MerInfo queryMerInfoStatus(String merNum){
-        log.info("商户号 ${} 进行商户状态查询",merNum);
+        log.info("商户号 {} 进行商户状态查询",merNum);
         MerInfo query=MerInfo.builder().mercNum(merNum).dataStatus(Consts.STATUS.NORMAL.getVal()).build();
         MerInfo merInfo=tplOne(query);
         if(merInfo==null)throw new LogicException("商户信息不存在，或被禁用");
@@ -195,13 +197,38 @@ public class MerInfoService extends BaseService<MerInfo> {
     //商户号选择
     public  MerInfo pickMerInfo(String channelCode,BigDecimal price){
         log.info("开始进行商户的筛选");
-        List<MerInfo> merInfoList=merInfoDao.pickMerInfo(channelCode,price);
-        log.info("得到符合条件的商户 :::::::::{}个:::::::::,开始随机获取商户");
+        DictItem dictItem= (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"mer_use_count");
+        DictItem dictItem1=(DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"mer_time_interval");
+        if(StrUtil.isBlank(dictItem.getDictItemVal()))throw new LogicException("merUserCount没有设置");
+        if(StrUtil.isBlank(dictItem1.getDictItemVal()))throw new LogicException("merTimeInterval没有设置");
+        Integer merUseCount=Integer.parseInt(dictItem.getDictItemVal());
+        Integer merTimeInterval=Integer.parseInt(dictItem1.getDictItemVal());
+        List<MerInfo> merInfoList=merInfoDao.pickMerInfo(channelCode,price,merUseCount,merTimeInterval);
+        log.info("得到符合条件的商户 :::::::::{}个:::::::::,开始随机获取商户",merInfoList.size());
         if(merInfoList.size()==0)return null;
         int size=merInfoList.size();
         int index=RandomUtil.randomInt(size);
-        log.info("筛选商户处理结束");
         return merInfoList.get(index);
+    }
+    //商户配置
+    public String setMerAppid(String merNo,String appid){
+        MerInfo merInfo=checkMerInfoStatus(merNo);
+        log.info("{}开始配置商户处理");
+        String agentNum=APUtil.getAgentNum();
+        String agentKey=APUtil.getAgentKey();
+        Map<String,String> map=new HashMap<>();
+        map.put("mercNum",merNo);
+        map.put("appId",appid);
+        map.put("jsapiPath","");
+        map.put("agentNum",agentNum);
+        String sign=Sha256.sha256ByAgentKey(map,agentKey);
+        map.put("sign",sign);
+        String ret=merchantClient.setMerAppid(map);
+        if(ret.equals(Consts.BOOLEAN.TRUE.name())){
+            merInfo.setAppid(appid);
+            update(merInfo);
+        }
+        return ret;
     }
 
 
