@@ -137,11 +137,11 @@ public class APUtil {
     public static void main(String[] args) {
        // System.out.printf(""+getRate("10004401"));
 //        System.out.printf(""+getZs("10004511"));
-//        System.out.println(getUUID());
+        System.out.println(getUUID());
 
 //        MailUtil.send("125227112@qq.com","你好萧霆峰","这事一段完事",false);
 
-        System.out.println(RandomUtil.randomInt(10));
+//        System.out.println(RandomUtil.randomInt(10));
 
 //        System.out.println(new String[]{"==="});
 

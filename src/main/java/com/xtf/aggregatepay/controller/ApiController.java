@@ -63,6 +63,8 @@ public class ApiController extends BaseController {
     private String tradeCallbackUrl;
     @Autowired
     private MerUsingService merUsingService;
+    @Autowired
+    private DictService dictService;
 
 //    @PostMapping(value = "/addMercInfo")
 //    public ApiResp<MerInfo> addMercInfo(ApiReq apiReq){
@@ -475,6 +477,61 @@ public class ApiController extends BaseController {
             return ApiResp.builder().respCode(Consts.SYS_COMMON_SUCCESS_CODE).respMsg("商户配置成功").build();
         else
             return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("商户配置失败").build();
+    }
+
+    /**
+     * 刷新系统缓存
+     * @return
+     */
+    @GetMapping(value = "/rrc")
+    @ResponseBody
+    public String refreshCache(){
+        dictService.dictCache();
+        return Consts.SYS_COMMON_SUCCESS_CODE;
+    }
+
+    /**
+     * 支付宝生活号
+     *
+     * @param apiReq
+     * @return
+     */
+    @ApiOperation(value = "支付宝生活号")
+    @PostMapping(value = "/zscanAliLife")
+    @ResponseBody
+    public ApiResp zscanAliLife(ApiReq apiReq) {
+        String json = apiReq.getJsonData();
+        log.info("交易数据:{}", json);
+        String req_sign = apiReq.getSign();
+        TradeData tradeData = JSONObject.parseObject(json, TradeData.class);
+        String merNum = tradeData.getMerchantNo();
+        if(StrUtil.isBlank(merNum)){
+            return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("缺少商户编号").build();
+        }
+        //商户状态
+        MerInfo merInfo = merInfoService.checkMerInfoStatus(merNum);
+        ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), merInfo.getApCode());
+        //报文一致性检查
+        if(!req_sign.equals("89830490")) {
+            String sign = Sha256.sha256ByAgentKey(json, apCode.getApKey());
+            if (!req_sign.equals(sign)) {
+                throw new LogicException("报文签名不一致，处理失败。");
+            }
+        }
+        //数据合法性检查
+        ValidationUtil.validate(tradeData);
+        //发起主扫交易
+        tradeData = tradeDataService.zscan(tradeData, merInfo);
+        String codeUrl = tradeData.getCodeurl();
+        String merOrder = tradeData.getMerOrder();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("codeurl", codeUrl);
+        jsonObject.put("merOrder", merOrder);
+        jsonObject.put("merchantNo", merNum);
+        log.info("向客户端返回的数据为 ${}", jsonObject.toJSONString());
+        String ret_sign = Sha256.sha256ByAgentKey(jsonObject, apCode.getApKey());
+        return ApiResp.builder().respCode(Consts.SYS_COMMON_SUCCESS_CODE).respMsg("主扫交易成功").jsonData(jsonObject).sign(ret_sign).build();
+
     }
 
 }

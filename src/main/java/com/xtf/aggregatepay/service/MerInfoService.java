@@ -20,6 +20,7 @@ import com.xtf.aggregatepay.util.EhcacheUtil;
 import com.xtf.aggregatepay.util.Sha256;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -231,6 +232,12 @@ public class MerInfoService extends BaseService<MerInfo> {
         return ret;
     }
 
-
-
+    @Scheduled(cron = "* */5 * * * ?")
+    public void syncMerStatus(){
+        log.info("执行商户状态自动同步任务");
+        List<MerInfo> merInfos=tpl(MerInfo.builder().status(Consts.MER_STATUS.DDSH.name()).dataStatus(Consts.STATUS.NORMAL.getVal()).build());
+        merInfos.stream().forEach(merInfo -> {
+            queryMerInfoStatus(merInfo.getMercNum());
+        });
+    }
 }
