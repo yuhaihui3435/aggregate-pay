@@ -159,17 +159,17 @@ selectTradeForChannelByInDateAndStatus
 ===
 select 
 @pageTag(){
-#use("cols")#
+#use("cols")# ,(select merc_Name from MER_INFO_T where MERC_NUM=MERCHANT_NO)as merName
 @}
 from TRADE_DATA_T where 
 channel_code in (select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(#channelId#))) 
-@if(!isEmpty(orderStatus)){
-    and ORDER_STATUS=#orderStatus# 
+@if(!isEmpty(status)){
+    and ORDER_STATUS=#status# 
 @}
 @if(!isEmpty(eDate)){
-and DATE_FORMAT(TIME_END,'%Y-%m-%d')<=#eDate# 
+and DATE_FORMAT(CREATED_TIME,'%Y-%m-%d')<=#eDate# 
 @}
 @if(!isEmpty(sDate)){
-and DATE_FORMAT(TIME_END,'%Y-%m-%d')>=#sDate#
+and DATE_FORMAT(CREATED_TIME,'%Y-%m-%d')>=#sDate#
 @}
  

@@ -232,7 +232,7 @@ public class MerInfoService extends BaseService<MerInfo> {
         return ret;
     }
 
-    @Scheduled(cron = "* */5 * * * ?")
+    @Scheduled(cron = "* 0/5 * * * ?")
     public void syncMerStatus(){
         log.info("执行商户状态自动同步任务");
         List<MerInfo> merInfos=tpl(MerInfo.builder().status(Consts.MER_STATUS.DDSH.name()).dataStatus(Consts.STATUS.NORMAL.getVal()).build());

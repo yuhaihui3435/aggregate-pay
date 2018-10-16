@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 public class MerUsingService extends BaseService<MerUsing> {
     @Autowired
     private MerUsingDao merUsingDao;
-    @Scheduled(cron = "*/2 * * * * ?")
+    @Scheduled(cron = "0/2 * * * * ?")
     public void delExpiredMerUsing(){
 //        log.info("执行定时清理商户占用数据");
         DictItem dictItem=(DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(),"mer_time_interval");

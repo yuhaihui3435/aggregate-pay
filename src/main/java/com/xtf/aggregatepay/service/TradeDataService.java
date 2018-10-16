@@ -105,13 +105,15 @@ public class TradeDataService extends BaseService<TradeData> {
         if(channelInfo!=null&&channelInfo.getType().equals("2")){
             MerInfo merInfo1=null;
             for(int i=0;i<5;i++){
+                log.info("执行第{}次筛选商户处理",i+1);
                 merInfo1=merInfoService.pickMerInfo(channelInfo.getCode(),tradeAmount);
                 if(merInfo1!=null){
                     try{
                         merQuotaCheck(channelInfo.getCode(),merInfo1.getMercNum(),new BigDecimal(tradeData.getTradeAmount()));
                         break;
                     }catch (LogicException e){
-                        log.error("筛选后的商户被金额风控");
+                        log.error("筛选后的商户{} 风控未通过,继续筛选", merInfo1.getMercNum());
+                        merInfo1=null;
                     }
                 }
             }

@@ -6,7 +6,6 @@ import com.xtf.aggregatepay.entity.MerInfo;
 import com.xtf.aggregatepay.entity.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import sun.plugin2.main.client.ProcessUI;
 
 import java.math.BigDecimal;
 import java.util.List;
