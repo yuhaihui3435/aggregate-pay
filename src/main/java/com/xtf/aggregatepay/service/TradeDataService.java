@@ -378,14 +378,14 @@ public class TradeDataService extends BaseService<TradeData> {
 
 
     /**
-     * 阿里生活号
+     * 公众号
      * @param tradeData
      * @param merInfo
      * @return
      */
     @Transactional
     public TradeData zscanAliLife(TradeData tradeData, MerInfo merInfo){
-        log.info("开始进行阿里生活号付款处理,金额风控检查");
+        log.info("开始进行公众号付款处理,金额风控检查");
         //金额是否超过最大设置检查
         ChannelInfo channelInfo=channelInfoService.findByCode(merInfo.getChannelCode());
         BigDecimal maxAmount=channelInfo.getCeilingOfSingle();

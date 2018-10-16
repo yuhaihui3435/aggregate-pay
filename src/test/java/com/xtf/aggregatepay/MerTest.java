@@ -129,4 +129,10 @@ public class MerTest {
 //        tradeDataService.staticsMerTrade("2018-10-09");
     }
 
+    @Test
+    public void configMer(){
+        HttpResponse httpResponse= HttpRequest.post("http://localhost:8085/api/configMer").form("merNo","M233213761533718288057483").form("appid","2018101461639880").execute();
+        log.info(httpResponse.body());
+    }
+
 }

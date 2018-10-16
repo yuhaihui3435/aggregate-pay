@@ -212,7 +212,7 @@ public class MerInfoService extends BaseService<MerInfo> {
         return merInfoList.get(index);
     }
     //商户配置
-    public String setMerAppid(String merNo,String appid){
+    public String configMer(String merNo,String appid){
         MerInfo merInfo=checkMerInfoStatus(merNo);
         log.info("{}开始配置商户处理");
         String agentNum=APUtil.getAgentNum();
@@ -224,7 +224,7 @@ public class MerInfoService extends BaseService<MerInfo> {
         map.put("agentNum",agentNum);
         String sign=Sha256.sha256ByAgentKey(map,agentKey);
         map.put("sign",sign);
-        String ret=merchantClient.setMerAppid(map);
+        String ret=merchantClient.configMer(map);
         if(ret.equals(Consts.BOOLEAN.TRUE.name())){
             merInfo.setAppid(appid);
             update(merInfo);

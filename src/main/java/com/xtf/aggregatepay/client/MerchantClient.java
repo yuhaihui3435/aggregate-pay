@@ -122,7 +122,7 @@ public class MerchantClient {
         }
     }
 
-    public String setMerAppid(Map<String,String> param){
+    public String configMer(Map<String,String> param){
         String paramStr= JSONUtil.toJsonStr(param);
         log.info("开始向xyf发送商户配置请求，数据内容为 {}",paramStr);
         HttpResponse httpResponse=HttpRequest.post(merConfigUrl).body(paramStr).timeout(requestTimeout).execute();
@@ -133,11 +133,11 @@ public class MerchantClient {
         }else{
             String retBody=httpResponse.body();
             HttpResp httpResp=JSONObject.parseObject(retBody,HttpResp.class);
-            if(httpResp.getRspCode().equals("00")){
+            if(httpResp.getResCode().equals("00")){
                 return (String)httpResp.getResult();
             }else{
                 log.info("商户配置处理失败， 错误编号 {},错误原因 {}",httpResp.getRspCode(),httpResp.getRspMsg());
-                throw new LogicException(httpResp.getRspCode(),httpResp.getRspMsg());
+                throw new LogicException(httpResp.getResCode(),httpResp.getResMsg());
             }
         }
 
