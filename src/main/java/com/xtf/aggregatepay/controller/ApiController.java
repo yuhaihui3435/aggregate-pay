@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -279,12 +280,12 @@ public class ApiController extends BaseController {
     @ApiOperation(value = "商户状态查询",notes = "通过商户编号查询商户状态，商户状态:SSTG审核通过,SHZ审核中，DDSH等待审核,SHJJ审核拒绝")
     @PostMapping(value = "/queryMerStatus")
     @ResponseBody
-    public Map queryMerStatus(@RequestParam String merNo) {
+    public MerInfo queryMerStatus(@RequestParam String merNo) {
         MerInfo merInfo= merInfoService.queryMerInfoStatus(merNo);
         Map<String,String> map=new HashMap<>();
         map.put("mercNum",merInfo.getMercNum());
         map.put("status",merInfo.getStatus());
-        return map;
+        return merInfo;
     }
 
     /**
@@ -367,6 +368,7 @@ public class ApiController extends BaseController {
         MerUsing merUsing=merUsingService.tplOne(MerUsing.builder().merNo(merNo).orderNo(merOrder).build());
         if(merUsing!=null)merUsingService.del(merUsing.getId());
         String downCallbackUrl = tradeData.getDownCallBackUrl();
+        String pageBackUrl=tradeData.getPageBackUrl();
         if (StrUtil.isBlank(downCallbackUrl)) log.error("下游回调地址未设置");
         else {
             MerInfo merInfo = merInfoService.findByMercNum(merNo);
@@ -410,6 +412,7 @@ public class ApiController extends BaseController {
         ret.put("merOrder",tradedata.getMerOrder());
         ret.put("orderStatus",tradedata.getOrderStatus());
         ret.put("tradeAmount",tradedata.getTradeAmount());
+        ret.put("pageBackUrl",tradedata.getPageBackUrl());
         return ret;
     }
     @PostMapping("/test")
@@ -421,6 +424,14 @@ public class ApiController extends BaseController {
     @GetMapping(value = "/hello")
     public String index(){
         return "scan";
+    }
+    @GetMapping(value = "/gzali")
+    public String gzali(){
+        return "scan10";
+    }
+    @GetMapping(value = "/gzaliSuccess")
+    public String gzaliSuccess(){
+        return "gzali_success";
     }
     @ApiOperation(value = "查询商户列表")
     @PostMapping("/queryMerList")
@@ -496,17 +507,23 @@ public class ApiController extends BaseController {
      * @param apiReq
      * @return
      */
-    @ApiOperation(value = "")
-    @PostMapping(value = "/gzScan1")
-    @ResponseBody
-    public ApiResp gzScan1(ApiReq apiReq) {
+    @ApiOperation(value = "公众号1.0版本")
+    @PostMapping(value = "/gzScan10")
+    public String gzScan10(ApiReq apiReq,Model model) {
         String json = apiReq.getJsonData();
         log.info("交易数据:{}", json);
         String req_sign = apiReq.getSign();
         TradeData tradeData = JSONObject.parseObject(json, TradeData.class);
         String merNum = tradeData.getMerchantNo();
+        if(StrUtil.isBlank(tradeData.getPageBackUrl())){
+            log.error("缺少成功回调页面");
+            model.addAttribute("msg","缺少成功回调页面");
+            return "error_msg";
+        }
         if(StrUtil.isBlank(merNum)){
-            return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("缺少商户编号").build();
+            log.info("缺少商户编号");
+            model.addAttribute("msg","缺少商户编号");
+            return "error_msg";
         }
         //商户状态
         MerInfo merInfo = merInfoService.checkMerInfoStatus(merNum);
@@ -521,16 +538,10 @@ public class ApiController extends BaseController {
         //数据合法性检查
         ValidationUtil.validate(tradeData);
         //发起主扫交易
-        tradeData = tradeDataService.zscan(tradeData, merInfo);
+        tradeData = tradeDataService.zscan10(tradeData, merInfo);
         String codeUrl = tradeData.getCodeurl();
-        String merOrder = tradeData.getMerOrder();
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("codeurl", codeUrl);
-        jsonObject.put("merOrder", merOrder);
-        jsonObject.put("merchantNo", merNum);
-        log.info("向客户端返回的数据为 ${}", jsonObject.toJSONString());
-        String ret_sign = Sha256.sha256ByAgentKey(jsonObject, apCode.getApKey());
-        return ApiResp.builder().respCode(Consts.SYS_COMMON_SUCCESS_CODE).respMsg("主扫交易成功").jsonData(jsonObject).sign(ret_sign).build();
+        log.info("支付地址为{}",codeUrl);
+        return "redirect:"+codeUrl;
 
     }
 

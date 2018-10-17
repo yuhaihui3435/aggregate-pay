@@ -135,4 +135,20 @@ public class MerTest {
         log.info(httpResponse.body());
     }
 
+    @Test
+    public void sendTrade10(){
+        Map<String,String> tradeInfo=new HashMap<>();
+        tradeInfo.put("merchantNo","M227128906438301138057125");
+        tradeInfo.put("merOrder",System.nanoTime()+"");
+        tradeInfo.put("productName","西红柿");
+        tradeInfo.put("tradeAmount","10000");
+        tradeInfo.put("downCallBackUrl","http://ap.3435.net.cn/api/test");
+        tradeInfo.put("pageBackUrl","http://www.baidu.com");
+        tradeInfo.put("bizType","ALIPAY");
+        String param_str= JSONObject.toJSONString(tradeInfo);
+        HttpResponse httpResponse= HttpRequest.post("http://localhost:8085/api/gzScan10").form("jsonData",param_str).form("sign","89830490").execute();
+        log.info(httpResponse.body());
+
+    }
+
 }

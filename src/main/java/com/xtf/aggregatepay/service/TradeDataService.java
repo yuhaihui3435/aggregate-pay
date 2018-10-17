@@ -384,20 +384,15 @@ public class TradeDataService extends BaseService<TradeData> {
      * @return
      */
     @Transactional
-    public TradeData zscanAliLife(TradeData tradeData, MerInfo merInfo){
-        log.info("开始进行公众号付款处理,金额风控检查");
+    public TradeData zscan10(TradeData tradeData, MerInfo merInfo){
+        log.info("开始公众号1.0处理");
         //金额是否超过最大设置检查
+
         ChannelInfo channelInfo=channelInfoService.findByCode(merInfo.getChannelCode());
-        BigDecimal maxAmount=channelInfo.getCeilingOfSingle();
-        BigDecimal maxAmountOfDay=channelInfo.getCeilingOfDay();
+        if(channelInfo.getType().equals("1"))
+            merQuotaCheck(merInfo.getChannelCode(),merInfo.getMercNum(),new BigDecimal(tradeData.getTradeAmount()));
         BigDecimal tradeAmount=new BigDecimal(tradeData.getTradeAmount()).divide(new BigDecimal(100));
-        BigDecimal merSumAmountNow=merSumTradeAmountNow(merInfo.getMercNum());
-        if(merSumAmountNow!=null) {
-            log.info("当前得交易总额度为{}", merSumAmountNow.divide(new BigDecimal(100)));
-        }
-        if(tradeAmount.compareTo(maxAmount)!=-1)throw new LogicException("单笔交易金额超过上限,上限为:"+maxAmount);
-        if(merSumAmountNow!=null&&merSumAmountNow.divide(new BigDecimal(100)).compareTo(maxAmountOfDay)!=-1)throw new LogicException("交易金额已经超过今日上限,上限为："+maxAmountOfDay);
-        if(Consts.BIZ_TYPE.valueOf(tradeData.getBizType())==null&&Consts.BIZ_TYPE.ALIPAY.name().equals(tradeData.getBizType()))throw new LogicException("交易方式错误");
+        if(Consts.BIZ_TYPE.valueOf(tradeData.getBizType())==null)throw new LogicException("交易方式错误");
         //设置交易相关数据
         log.info("开始交易数据整理");
         //挑选商户号
@@ -405,8 +400,17 @@ public class TradeDataService extends BaseService<TradeData> {
         if(channelInfo!=null&&channelInfo.getType().equals("2")){
             MerInfo merInfo1=null;
             for(int i=0;i<5;i++){
+                log.info("执行第{}次筛选商户处理",i+1);
                 merInfo1=merInfoService.pickMerInfo(channelInfo.getCode(),tradeAmount);
-                if(merInfo1!=null)break;
+                if(merInfo1!=null){
+                    try{
+                        merQuotaCheck(channelInfo.getCode(),merInfo1.getMercNum(),new BigDecimal(tradeData.getTradeAmount()));
+                        break;
+                    }catch (LogicException e){
+                        log.error("筛选后的商户{} 风控未通过,继续筛选", merInfo1.getMercNum());
+                        merInfo1=null;
+                    }
+                }
             }
             if(merInfo1==null)throw new LogicException("获取二维码失败，请重试");
             log.info("筛选到的商户编号为 {}",merInfo1.getMercNum());
@@ -415,14 +419,13 @@ public class TradeDataService extends BaseService<TradeData> {
             tradeData.setProductName(product==null?tradeData.getProductName():RandomUtil.randomString(merInfo1.getMercName(),2)+product.getProductName());
         }
         tradeData.setCallBackUrl(tradeCallbackUrl);
-        tradeData.setTradeType(Consts.TRADE_TYPE.GZZZ.getVal());
+        tradeData.setTradeType(Consts.TRADE_TYPE.XXZSCAN.getVal());
         tradeData.setAgentNo(APUtil.getAgentNum());
         String str=JSON.toJSONString(tradeData);
         Map<String,String> param=JSON.parseObject(str,Map.class);
-        param.put("version","1.1");
-        param.put("userId","");//传的数据内容
         param.remove("downCallBackUrl");
         param.remove("tails");
+        param.put("version","1.0");
 
         String sign=Sha256.sha256ByAgentKey(param,APUtil.getAgentKey());
         param.put("sign",sign);

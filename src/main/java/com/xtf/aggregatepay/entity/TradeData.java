@@ -153,6 +153,7 @@ public class TradeData extends com.xtf.aggregatepay.core.BaseEntity  {
 	private Date downCallBackRetLasttime;
 	@Transient
 	private String merName;
+	private String pageBackUrl;
 
 	@Tolerate
 	public TradeData() {

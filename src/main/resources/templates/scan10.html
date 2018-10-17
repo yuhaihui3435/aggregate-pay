@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.js"></script>
+    <script>
+        $(function() {
+            FastClick.attach(document.body);
+        });
+    </script>
+</head>
+<body>
+
+<div class="container-fluid" >
+    <div class="row">
+    <form id="dataForm" class="form-horizontal">
+        <input type="hidden" id="downCallBackUrl" name="downCallBackUrl" value="http://ap.3435.net.cn/test">
+        <input type="hidden" id="pageBackUrl" name="pageBackUrl" value="http://ap.3435.net.cn/api/gzaliSuccess">
+        <input type="hidden" id="merOrder" name="merOrder">
+        <div class="form-group">
+            <label class="col-sm-2 control-label">商户编号</label><div class="col-sm-10"><input class="form-control" id="merchantNo" type="text" name="merchantNo" value="M233213761533718288057483"></div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">产品名称</label>
+            <div class="col-sm-10">
+            <select class="form-control" name="productName">
+                <option value="法式面包">法式面包</option>
+                <option value="蔬菜">蔬菜</option>
+                <option value="香烟">香烟</option>
+                <option value="NICK阿甘鞋">NICK阿甘鞋</option>
+                <option value="阿玛尼衣服">阿玛尼衣服</option>
+            </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">金额(单位分)</label><div class="col-sm-10"><input type="text" class="form-control" name="tradeAmount" value="132"></div></div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">支付方式</label><div class="col-sm-10"><select  class="form-control" name="bizType">
+        <option value="ALIPAY" selected>支付宝</option>
+        </select></div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="button" onclick="getQr()" class="btn btn-primary">Sign in</button>
+            </div>
+        </div>
+    </form>
+    <form id="form" action="/api/gzScan10" method="post">
+        <input type="hidden" id="jsonData" name="jsonData" >
+        <input type="hidden" id="sign" name="sign" value="89830490" >
+
+    </form>
+    </div>
+</div>
+<div id="qrcode">
+
+</div>
+<script>
+    setInterval(queryOrder,1000)
+    
+    function queryOrder() {
+        let merOrder=$("#merOrder").val();
+        let merchantNo=$("#merchantNo").val();
+        if(merOrder!=''){
+            $.post("http://ap.3435.net.cn/api/queryOrderStatus", {
+                    'merNo':merchantNo,
+                    'merOrder':merOrder,
+                    'amount':'89830490'
+                }
+                , function (result) {
+                    if(result.orderStatus=='success'){
+                        location.href=result.pageBackUrl;
+                    }
+                })
+        }
+    }
+    $.fn.serializeObject = function()
+    {
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function() {
+            if (o[this.name] !== undefined) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
+    function S4() {
+        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+    };
+
+    function getQr() {
+        // var form=document.getElementById("form");
+        // var param={}
+
+        var merOrder=new Date().getTime();
+        $('#merOrder').val(merOrder)
+
+        // param.merchantNo=document.getElementById('merchantNo').value;
+        // param.productName=document.getElementById('productName').value;
+        // param.tradeAmount=document.getElementById('tradeAmount').value;
+        // param.bizType=document.getElementById('bizType').value;
+        // console.info(param)
+        let param=JSON.stringify($('#dataForm').serializeObject());
+        console.info(param)
+        $("#jsonData").val(param)
+        $("#form").submit();
+
+    }
+</script>
+</body>
+</html>
