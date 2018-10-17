@@ -1,8 +1,11 @@
 package com.xtf.aggregatepay.handler;
 
+import cn.hutool.json.JSONUtil;
 import com.xtf.aggregatepay.Consts;
 import com.xtf.aggregatepay.core.LogicException;
 import com.xtf.aggregatepay.dto.ApiResp;
+import com.xtf.aggregatepay.util.RepKit;
+import com.xtf.aggregatepay.util.ReqKit;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -14,6 +17,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartException;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.ValidationException;
 
 /**
@@ -36,10 +41,16 @@ import javax.validation.ValidationException;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    @ResponseBody
-    public ApiResp handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+    public String handleMissingServletRequestParameterException(MissingServletRequestParameterException e, HttpServletRequest request ,HttpServletResponse response) {
         log.error("缺少请求参数 ${}", e);
-        return  ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg("缺少请求参数>>"+e.getMessage()).build();
+        if(ReqKit.isAjaxRequest(request)) {
+            ApiResp apiResp = ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg("缺少请求参数>>" + e.getMessage()).build();
+            RepKit.writeJson(response,JSONUtil.toJsonStr(apiResp));
+        }else{
+            request.setAttribute("msg","缺少请求参数");
+            return "error_msg";
+        }
+        return "error_msg";
     }
 
     /**
@@ -48,10 +59,16 @@ public class GlobalExceptionHandler {
      * @return
      */
     @ExceptionHandler(LogicException.class)
-    @ResponseBody
-    ApiResp handleBusinessException(LogicException e){
+    public String handleBusinessException(LogicException e, HttpServletRequest request ,HttpServletResponse response){
         log.error("系统业务操作失败：异常编号 {} 异常信息 {}",e.getErrCode(),e.getErrMsg());
-        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(e.getPrettyExceptionMsg()).build();
+        if(ReqKit.isAjaxRequest(request)) {
+            ApiResp apiResp = ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(e.getPrettyExceptionMsg()).build();
+            RepKit.writeJson(response,JSONUtil.toJsonStr(apiResp));
+        }else{
+            request.setAttribute("msg","系统业务操作失败：异常编号 "+e.getErrCode()+" 异常信息 "+e.getErrMsg());
+            return "error_msg";
+        }
+        return "error_msg";
     }
 
     /**
@@ -60,8 +77,7 @@ public class GlobalExceptionHandler {
      * @return
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseBody
-    ApiResp handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
+    public String handleMethodArgumentNotValidException(MethodArgumentNotValidException e, HttpServletRequest request ,HttpServletResponse response){
         log.error("数据不合法：异常信息>>{}",e.getMessage());
         BindingResult bindingResult = e.getBindingResult();
         String errorMesssage = "请求参数不合法:\n";
@@ -70,27 +86,46 @@ public class GlobalExceptionHandler {
         }
         log.error("数据校验失败原因:"+errorMesssage);
 
-        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(errorMesssage).build();
+        if(ReqKit.isAjaxRequest(request)) {
+            ApiResp apiResp =ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(errorMesssage).build();
+            RepKit.writeJson(response,JSONUtil.toJsonStr(apiResp));
+        }else{
+            request.setAttribute("msg","数据校验失败原因:"+errorMesssage);
+            return "error_msg";
+        }
+        return "error_msg";
     }
 
     @ExceptionHandler(value =BindException.class)
-    @ResponseBody
-    public ApiResp handleBindException(BindException e)  {
+    public String handleBindException(BindException e, HttpServletRequest request ,HttpServletResponse response)  {
         // ex.getFieldError():随机返回一个对象属性的异常信息。如果要一次性返回所有对象属性异常信息，则调用ex.getAllErrors()
         log.error("数据绑定失败：异常信息>>{}",e.getMessage());
         FieldError fieldError = e.getFieldError();
         StringBuilder sb = new StringBuilder();
         sb.append(fieldError.getField()).append("=[").append(fieldError.getRejectedValue()).append("]")
                 .append(fieldError.getDefaultMessage());
-        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(sb.toString()).build();
+        if(ReqKit.isAjaxRequest(request)) {
+            ApiResp apiResp =ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(sb.toString()).build();
+            RepKit.writeJson(response,JSONUtil.toJsonStr(apiResp));
+        }else{
+            request.setAttribute("msg","数据绑定失败：异常信息>>"+e.getMessage());
+            return "error_msg";
+        }
+        return "error_msg";
     }
 
 
     @ExceptionHandler(value =ValidationException.class)
-    @ResponseBody
-    public ApiResp handleValidationException(ValidationException e) {
+    public String handleValidationException(ValidationException e, HttpServletRequest request ,HttpServletResponse response) {
         log.error("数据校验：校验未通过，校验结果为>>{}",e.getMessage());
-        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(e.getMessage()).build();
+        if(ReqKit.isAjaxRequest(request)) {
+            ApiResp apiResp = ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg(e.getMessage()).build();
+            RepKit.writeJson(response,JSONUtil.toJsonStr(apiResp));
+        }else{
+            request.setAttribute("msg","数据校验：校验未通过，校验结果为>>"+e.getMessage());
+            return "error_msg";
+        }
+        return "error_msg";
     }
 
     /**
@@ -99,17 +134,29 @@ public class GlobalExceptionHandler {
      * @return
      */
     @ExceptionHandler(Exception.class)
-    @ResponseBody
-    public ApiResp handleException(Exception e){
+    public String handleException(Exception e, HttpServletRequest request ,HttpServletResponse response){
         log.error("系统错误：异常信息为>>{}",e.getMessage());
         e.printStackTrace();
-        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg("系统错误了，请联系管理员！").build();
+        if(ReqKit.isAjaxRequest(request)) {
+            ApiResp apiResp = ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg("系统错误了，请联系管理员！").build();
+            RepKit.writeJson(response,JSONUtil.toJsonStr(apiResp));
+        }else{
+            request.setAttribute("msg","系统错误：异常信息为>>"+e.getMessage());
+            return "error_msg";
+        }
+        return "error_msg";
     }
     @ExceptionHandler(value =MultipartException.class)
-    @ResponseBody
-    public ApiResp handleMultipartException(MultipartException multipartException){
+    public String handleMultipartException(MultipartException multipartException, HttpServletRequest request ,HttpServletResponse response){
         log.error("上传文件过大");
-        return ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg("上传的文件过大，单个文件不要超过1MB,一次上传不能超过10MB").build();
+        if(ReqKit.isAjaxRequest(request)) {
+            ApiResp apiResp = ApiResp.builder().respCode(Consts.SYS_COMMON_ERR_CODE).respMsg("上传的文件过大，单个文件不要超过1MB,一次上传不能超过10MB").build();
+            RepKit.writeJson(response,JSONUtil.toJsonStr(apiResp));
+        }else{
+            request.setAttribute("msg","上传的文件过大，单个文件不要超过1MB,一次上传不能超过10MB");
+            return "error_msg";
+        }
+        return "error_msg";
     }
 
 
