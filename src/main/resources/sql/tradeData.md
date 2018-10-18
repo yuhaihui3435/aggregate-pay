@@ -125,7 +125,7 @@ and DATE_FORMAT(td.TIME_END,'%Y-%m-%d')=#staticsDate#
 and td.BIZ_TYPE=#bizType# 
 @}
 and td.MERCHANT_NO=mi.MERC_NUM and mi.SETTLE_WAY=#settleWay#
-and td.channel_code in (select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(ci.id)))) as totalTradeAmount,
+and FIND_IN_SET   (td.channel_code,(select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(ci.id))))) as totalTradeAmount,
 (select count(td.id) from TRADE_DATA_T td,MER_INFO_T mi where td.ORDER_STATUS='success' 
 @if(!isEmpty(staticsDate)){
 and DATE_FORMAT(td.TIME_END,'%Y-%m-%d')=#staticsDate# 
@@ -134,13 +134,13 @@ and DATE_FORMAT(td.TIME_END,'%Y-%m-%d')=#staticsDate#
 and td.BIZ_TYPE=#bizType#
 @}
 and td.MERCHANT_NO=mi.MERC_NUM and mi.SETTLE_WAY=#settleWay#
-and  td.channel_code in (select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(ci.id)))) as totalTradeNum 
+and  FIND_IN_SET (td.channel_code,(select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(ci.id))))) as totalTradeNum 
 from CHANNEL_INFO_T ci 
 
 staticsTradeByMerInfo
 ===
 select * from TRADE_DATA_T where 
-channel_code in (select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(#channelId#))) 
+FIND_IN_SET (channel_code,(select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(#channelId#)))) 
 and order_status='success' and DATE_FORMAT(TIME_END,'%Y-%m-%d')=#staticsDate#
 
 selectByMerMumAndOrderStatusAndEDate
@@ -165,7 +165,7 @@ select
 #use("cols")# ,(select merc_Name from MER_INFO_T where MERC_NUM=MERCHANT_NO)as merName
 @}
 from TRADE_DATA_T where 
-channel_code in (select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(#channelId#))) 
+ FIND_IN_SET (channel_code,(select code from CHANNEL_INFO_T where FIND_IN_SET(id,`getChannelChildList`(#channelId#)))) 
 @if(!isEmpty(status)){
     and ORDER_STATUS=#status# 
 @}
