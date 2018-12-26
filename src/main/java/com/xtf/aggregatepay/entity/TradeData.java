@@ -155,6 +155,8 @@ public class TradeData extends com.xtf.aggregatepay.core.BaseEntity  {
 	private String merName;
 	private String pageBackUrl;
 
+	private String clientCode;
+
 	@Tolerate
 	public TradeData() {
 	}
@@ -593,6 +595,12 @@ public class TradeData extends com.xtf.aggregatepay.core.BaseEntity  {
 	public void setUpdatedTime(Date updatedTime ){
 		this.updatedTime = updatedTime;
 	}
-	
 
+	public String getClientCode() {
+		return clientCode;
+	}
+
+	public void setClientCode(String clientCode) {
+		this.clientCode = clientCode;
+	}
 }

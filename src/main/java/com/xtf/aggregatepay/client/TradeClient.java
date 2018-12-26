@@ -77,7 +77,7 @@ public class TradeClient {
         Map retMap=null;
         String returnResCode=null;
         for (int i = 0; i < downCallbackRetryCount; i++) {
-            log.info("开始执行第{}次，回调处理",i+1);
+            log.info("开始执行第{}次，回调处理{},参数为{}",i+1,downCallbackUrl,map);
             try {
                 httpResponse = HttpRequest.post(downCallbackUrl).form(map).timeout(requestTimeout).execute();
                 ret = httpResponse.body();
@@ -90,11 +90,12 @@ public class TradeClient {
                     log.info("下游交易回调成功");
                 }
             } catch (Exception e) {
-                log.error("下游交易请求失败，执行重试");
+                log.error("下游交易请求失败，执行重试{}",e.getMessage());
             }
             i++;
             if(returnResCode==null)returnResCode=Consts.SYS_COMMON_FAIL_CODE;
-            TradeData tradeData=tradeDataService.tplOne(TradeData.builder().merOrder((String)map.get("merOrder")).merchantNo((String)map.get("merNo")).build());
+            TradeData tradeData=tradeDataService.tplOne(TradeData.builder().merOrder((String)map.get("merOrder"))
+                    .merchantNo((String)map.get("merNo")).build());
             log.info("更新下游交易回调响应结果,响应结果为{}",returnResCode);
             if(tradeData!=null){
                 tradeData.setDownCallBackRet(returnResCode);

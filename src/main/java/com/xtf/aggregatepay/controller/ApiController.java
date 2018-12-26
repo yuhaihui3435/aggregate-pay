@@ -33,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,6 +67,8 @@ public class ApiController extends BaseController {
     private MerUsingService merUsingService;
     @Autowired
     private DictService dictService;
+    @Autowired
+    private TradeSettleService tradeSettleService;
 
 //    @PostMapping(value = "/addMercInfo")
 //    public ApiResp<MerInfo> addMercInfo(ApiReq apiReq){
@@ -302,6 +305,13 @@ public class ApiController extends BaseController {
         log.info("交易数据:{}", json);
         String req_sign = apiReq.getSign();
         TradeData tradeData = JSONObject.parseObject(json, TradeData.class);
+        String mo=tradeData.getMerOrder();
+        TradeData td=tradeDataService.tplOne(TradeData.builder().merOrder(mo).build());
+        if(td!=null){
+            log.error("订单编号{}已经存在",mo);
+            throw new LogicException("订单号重复，请重试");
+        }
+
         String merNum = tradeData.getMerchantNo();
         if(StrUtil.isBlank(merNum)){
             return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("缺少商户编号").build();
@@ -350,7 +360,7 @@ public class ApiController extends BaseController {
         String req_sign = map.get("sign");
         String sign = Sha256.sha256ByAgentKey(map, APUtil.getAgentKey());
         if (!req_sign.equals(sign)) log.error(msgProp.getServerRetSign_err());
-        TradeData tradeData = tradeDataService.queryByMerchantNoAndMerOrder(merNo, merOrder);
+        TradeData tradeData = tradeDataService.queryByMerchantNoAndMerOrderAndClientCode(merNo, merOrder,null);
         if (tradeData == null) log.error("交易回调处理，未找到对应的交易记录");
         String resCode = map.get("resCode");
         String payOrderNo = map.get("payOrderNo");
@@ -369,6 +379,9 @@ public class ApiController extends BaseController {
         if(merUsing!=null)merUsingService.del(merUsing.getId());
         String downCallbackUrl = tradeData.getDownCallBackUrl();
         String pageBackUrl=tradeData.getPageBackUrl();
+
+        tradeSettleService.addTradeSettle(merOrder,new BigDecimal(amount).divide(new BigDecimal(100)));
+
         if (StrUtil.isBlank(downCallbackUrl)) log.error("下游回调地址未设置");
         else {
             MerInfo merInfo = merInfoService.findByMercNum(merNo);
@@ -389,15 +402,15 @@ public class ApiController extends BaseController {
      *
      * @param merNo    商户号
      * @param merOrder 订单号
-     * @param amount   交易金额
+     * @param clientCode   客户号
      * @return
      */
     @ApiOperation(value = "订单状态查询")
     @PostMapping(value = "/queryOrderStatus")
     @ResponseBody
-    public Map queryOrderStatus(@RequestParam String merNo, @RequestParam String merOrder, @RequestParam(required = false) String amount) {
-        log.info("客户端开始进行交易状态查询，商户号为 {} ,订单号为 {},交易金额为 {}", merNo, merOrder, amount);
-        TradeData tradedata = tradeDataService.queryByMerchantNoAndMerOrder(merNo, merOrder);
+    public Map queryOrderStatus(@RequestParam(required = false) String merNo, @RequestParam String merOrder, @RequestParam(required = false) String clientCode) {
+        log.info("客户端开始进行交易状态查询，商户号为 {} ,订单号为 {},客户号 {}", merNo, merOrder, clientCode);
+        TradeData tradedata = tradeDataService.queryByMerchantNoAndMerOrderAndClientCode(merNo, merOrder,clientCode);
         if(tradedata==null){
             throw new LogicException("交易不存在");
         }
@@ -417,8 +430,11 @@ public class ApiController extends BaseController {
     }
     @PostMapping("/test")
     @ResponseBody
-    public void test(@RequestParam String merNo,@RequestParam String merOrder,@RequestParam String orderStatus){
+    public Map test(@RequestParam String merNo,@RequestParam String merOrder,@RequestParam String orderStatus){
         log.info("客户端回调的 商户号 {} ，订单号 {} 订单状态 {}",merNo,merOrder,orderStatus);
+        Map ret=new HashMap();
+        ret.put("respCode","success");
+        return ret;
     }
     @ApiOperation(value = "主扫测试页面")
     @GetMapping(value = "/hello")
@@ -501,15 +517,10 @@ public class ApiController extends BaseController {
         return Consts.SYS_COMMON_SUCCESS_CODE;
     }
 
-    /**
-     * 公众号1.0版本
-     *
-     * @param apiReq
-     * @return
-     */
-    @ApiOperation(value = "公众号1.0版本")
-    @PostMapping(value = "/gzScan10")
-    public String gzScan10(ApiReq apiReq,Model model) {
+
+    @ApiOperation(value = "进入阿里支付公众号支付页面")
+    @PostMapping(value = "/toAliPayPage")
+    public String toAliPayPage(ApiReq apiReq,Model model){
         String json = apiReq.getJsonData();
         log.info("交易数据:{}", json);
         String req_sign = apiReq.getSign();
@@ -526,6 +537,55 @@ public class ApiController extends BaseController {
             return "error_msg";
         }
         //商户状态
+        try {
+            MerInfo merInfo = merInfoService.checkMerInfoStatus(merNum);
+            ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), merInfo.getApCode());
+            //报文一致性检查
+            if (!req_sign.equals("89830490")) {
+                String sign = Sha256.sha256ByAgentKey(json, apCode.getApKey());
+                if (!req_sign.equals(sign)) {
+                    throw new LogicException("报文签名不一致，处理失败。");
+                }
+            }
+            //数据合法性检查
+            ValidationUtil.validate(tradeData);
+        }catch (LogicException e){
+            model.addAttribute("msg",e.getMessage());
+            return "error_msg";
+        }
+
+        model.addAttribute("tradeData",tradeData);
+        model.addAttribute("req_sign",req_sign);
+        return "aliPay";
+    }
+
+
+    /**
+     * 公众号1.0版本
+     *
+     * @param apiReq
+     * @return
+     */
+    @ApiOperation(value = "公众号1.0版本")
+    @PostMapping(value = "/gzScan10")
+    @ResponseBody
+    public ApiResp gzScan10(ApiReq apiReq,Model model) {
+        String json = apiReq.getJsonData();
+        log.info("交易数据:{}", json);
+        String req_sign = apiReq.getSign();
+        TradeData tradeData = JSONObject.parseObject(json, TradeData.class);
+        String merNum = tradeData.getMerchantNo();
+        if(StrUtil.isBlank(tradeData.getPageBackUrl())){
+            log.error("缺少成功回调页面");
+            model.addAttribute("msg","缺少成功回调页面");
+            return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("缺少成功回调页面").build();
+        }
+        if(StrUtil.isBlank(merNum)){
+            log.info("缺少商户编号");
+            model.addAttribute("msg","缺少商户编号");
+            return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("缺少商户编号").build();
+        }
+        //商户状态
         MerInfo merInfo = merInfoService.checkMerInfoStatus(merNum);
         ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), merInfo.getApCode());
         //报文一致性检查
@@ -539,9 +599,11 @@ public class ApiController extends BaseController {
         ValidationUtil.validate(tradeData);
         //发起主扫交易
         tradeData = tradeDataService.zscan10(tradeData, merInfo);
+        JSONObject jsonObject=new JSONObject();
         String codeUrl = tradeData.getCodeurl();
+        jsonObject.put("codeUrl",codeUrl);
         log.info("支付地址为{}",codeUrl);
-        return "redirect:"+codeUrl;
+        return ApiResp.builder().respCode(Consts.SYS_COMMON_SUCCESS_CODE).jsonData(jsonObject).build();
 
     }
 

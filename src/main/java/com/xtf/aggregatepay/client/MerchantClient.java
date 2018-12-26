@@ -104,11 +104,11 @@ public class MerchantClient {
     public String queryMerStatus(Map<String,Object> param){
         String agentKey=APUtil.getAgentKey();
         String paramStr=JSONUtil.toJsonStr(param);
-        log.info("开始向xyf发送商户状态查询请求，数据内容为 ${}",paramStr);
+//        log.info("开始向xyf发送商户状态查询请求，数据内容为 ${}",paramStr);
         HttpResponse httpResponse=HttpRequest.post(queryMerStatusUrl).body(paramStr).timeout(requestTimeout).execute();
-        log.info("请求成功，返回数据为："+httpResponse.body());
+//        log.info("请求成功，返回数据为："+httpResponse.body());
         if(httpResponse.getStatus()!=200){
-            log.error("请求响应状态为："+httpResponse.getStatus()+",请求失败");
+//            log.error("请求响应状态为："+httpResponse.getStatus()+",请求失败");
             throw new LogicException("商户状态查询失败");
         }else{
             String retBody=httpResponse.body();
@@ -116,7 +116,7 @@ public class MerchantClient {
             if(httpResp.getRspCode().equals("00")){
                 return (String)httpResp.getStatus();
             }else{
-                log.info("商户状态查询失败， 错误编号 {},错误原因 {}",httpResp.getRspCode(),httpResp.getRspMsg());
+//                log.info("商户状态查询失败， 错误编号 {},错误原因 {}",httpResp.getRspCode(),httpResp.getRspMsg());
                 throw new LogicException(httpResp.getRspCode(),httpResp.getRspMsg());
             }
         }

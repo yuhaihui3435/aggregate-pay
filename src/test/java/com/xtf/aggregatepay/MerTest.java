@@ -29,6 +29,11 @@ public class MerTest {
 //    @Autowired
 //    private TradeDataService tradeDataService;
 
+    /**
+     *
+     * 新增商户
+     *
+     */
     @Test
     public void addMerInfo(){
         Map<String,String> merInfo=new HashMap<>();
@@ -74,10 +79,15 @@ public class MerTest {
         String param_str= JSONObject.toJSONString(param);
         System.out.println(sign);
         System.out.println(param_str);
-        HttpResponse httpResponse=HttpRequest.post("http://ap.3435.net.cn/api/addMerInfo").form("files", file,file1,file2,file3,file4).form("jsonData",param_str).form("sign",sign).execute();
+        HttpResponse httpResponse=HttpRequest.post("http://47.75.135.105/api/addMerInfo").form("files", file,file1,file2,file3,file4).form("jsonData",param_str).form("sign",sign).execute();
         log.info(httpResponse.body());
     }
 
+    /**
+     *
+     * 微信支付宝二维码交易
+     *
+     */
     @Test
     public void sendTrade(){
         Map<String,String> tradeInfo=new HashMap<>();
@@ -85,28 +95,46 @@ public class MerTest {
         tradeInfo.put("merOrder",System.nanoTime()+"");
         tradeInfo.put("productName","西红柿");
         tradeInfo.put("tradeAmount","10000");
-        tradeInfo.put("downCallBackUrl","http://ap.3435.net.cn/api/test");
+        tradeInfo.put("clientCode","1111111");
+        tradeInfo.put("downCallBackUrl","http://47.75.135.105/api/test");
         tradeInfo.put("bizType","WECHATPAY");
         String sign=Sha256.sha256ByAgentKey(tradeInfo,"BDCFDFDFDFSFUIUOIURIUEREWFFD");
         String param_str= JSONObject.toJSONString(tradeInfo);
-        HttpResponse httpResponse= HttpRequest.post("http://localhost:8085/api/zscan").form("jsonData",param_str).form("sign","89830490").execute();
+        HttpResponse httpResponse= HttpRequest.post("http://47.75.135.105/api/zscan").form("jsonData",param_str).form("sign","89830490").execute();
         log.info(httpResponse.body());
 
     }
+
+    /**
+     *
+     * 商户状态查询
+     *
+     */
     @Test
     public void queryMerStatus(){
-        HttpResponse httpResponse= HttpRequest.post("http://ap.3435.net.cn/api/queryMerStatus").form("merNo","M227128906438301138057125").execute();
-        log.info(httpResponse.body());
-    }
-    @Test
-    public void queryOrderStatus(){
-        HttpResponse httpResponse= HttpRequest.post("http://localhost:9000/api/queryOrderStatus").form("merNo","M23225013781989578057046").form("merOrder","8413659444954").form("amount","1").execute();
+        HttpResponse httpResponse= HttpRequest.post("http://47.75.135.105/api/queryMerStatus").form("merNo","M277362232953462468057511").execute();
         log.info(httpResponse.body());
     }
 
+    /**
+     *
+     * 订单状态查询
+     *
+     */
+    @Test
+    public void queryOrderStatus(){
+        HttpResponse httpResponse= HttpRequest.post("http://47.75.135.105/api/queryOrderStatus").form("merNo","M23225013781989578057046").form("merOrder","181214134324787974").form("clientCode","11111").form("amount","1").execute();
+        log.info(httpResponse.body());
+    }
+
+    /**
+     *
+     *
+     *
+     */
     @Test
     public void queryMerList(){
-        HttpResponse httpResponse= HttpRequest.post("http://localhost:8086/api/queryMerList").form("pageNumber",1).form("channelCode","10000000").execute();
+        HttpResponse httpResponse= HttpRequest.post("http://47.75.135.105/api/queryMerList").form("pageNumber",1).form("channelCode","10000000").execute();
         log.info(httpResponse.body());
     }
 
@@ -131,10 +159,15 @@ public class MerTest {
 
     @Test
     public void configMer(){
-        HttpResponse httpResponse= HttpRequest.post("http://localhost:8085/api/configMer").form("merNo","M233213761533718288057483").form("appid","2018101461639880").execute();
+        HttpResponse httpResponse= HttpRequest.post("http://47.75.135.105/api/configMer").form("merNo","M233213761533718288057483").form("appid","2018101461639880").execute();
         log.info(httpResponse.body());
     }
 
+    /**
+     *
+     * h5支付宝交易
+     *
+     */
     @Test
     public void sendTrade10(){
         Map<String,String> tradeInfo=new HashMap<>();
@@ -142,13 +175,24 @@ public class MerTest {
         tradeInfo.put("merOrder",System.nanoTime()+"");
         tradeInfo.put("productName","西红柿");
         tradeInfo.put("tradeAmount","10000");
-        tradeInfo.put("downCallBackUrl","http://ap.3435.net.cn/api/test");
+        tradeInfo.put("clientCode","1111111");
+        tradeInfo.put("downCallBackUrl","http://47.75.135.105/api/test");
         tradeInfo.put("pageBackUrl","http://www.baidu.com");
         tradeInfo.put("bizType","ALIPAY");
         String param_str= JSONObject.toJSONString(tradeInfo);
-        HttpResponse httpResponse= HttpRequest.post("http://localhost:8085/api/gzScan10").form("jsonData",param_str).form("sign","89830490").execute();
+        HttpResponse httpResponse= HttpRequest.post("http://47.75.135.105/api/gzScan10").form("jsonData",param_str).form("sign","89830490").execute();
         log.info(httpResponse.body());
 
+    }
+    @Test
+    public void t(){
+        HttpResponse httpResponse= HttpRequest.post("http://59.110.154.24:8080/alipay/xtfAlipayNotify").
+                form("merNo", "M233213761533718288057483").
+                form("merOrder", "1541399745375293000").
+                form("amount", "150").
+                form("orderStatus","success").
+                form("sign","ssssssssssssssssss").execute();
+        log.info(httpResponse.body());
     }
 
 }

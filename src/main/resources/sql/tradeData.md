@@ -107,6 +107,9 @@ condition
 	@if(!isEmpty(pageBackUrl)){
      and PAGE_BACK_URL=#pageBackUrl#
     @}
+    @if(!isEmpty(clientCode)){
+         and CLIENT_CODE=#clientCode#
+    @}
 	
 sumTradeAmount
 ===

@@ -20,7 +20,7 @@ public class DelSuffixConversion extends NameConversion {
     }
     @Override
     public String getClassName(String tableName) {
-        int index=tableName.lastIndexOf("_T");
+        int index=tableName.lastIndexOf("_t");
         if(tableName.length()-2==index){
             tableName=tableName.substring(0,index);
         }

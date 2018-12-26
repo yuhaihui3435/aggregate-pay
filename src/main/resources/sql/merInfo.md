@@ -136,8 +136,10 @@ condition
 pickMerInfo
 ===
  
- select m.* from PRODUCT_T p,MER_INFO_T m where p.INDUSTRY_CODE=m.CUSTOM_MCC_TYPE 
- and  m.CHANNEL_CODE=#channelCode# and #price#>=p.min_price and #price# <p.max_price and m.data_status='0' and m.status='SHTG' 
+ select m.* from 
+ MER_INFO_T m where  
+ m.CHANNEL_CODE=#channelCode# 
+ and m.data_status='0' and m.status='SHTG' 
  and(((select Count(id) from MER_USING_T where mer_no=m.MERC_NUM )< #merUseCount#
  and (select TIMESTAMPDIFF(SECOND,max(use_time),NOW()) from MER_USING_T where mer_no=m.MERC_NUM)>#merTimeInterval# ) 
  or (select Count(id) from MER_USING_T where mer_no=m.MERC_NUM )=0)

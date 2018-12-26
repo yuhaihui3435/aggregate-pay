@@ -1,5 +1,7 @@
 package com.xtf.aggregatepay;
 
+import java.math.BigDecimal;
+
 public interface Consts {
      String SYS_COMMON_ERR_CODE="fail";
      String SYS_COMMON_SUCCESS_CODE="success";

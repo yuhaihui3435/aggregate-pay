@@ -117,7 +117,7 @@ public class TradeDataService extends BaseService<TradeData> {
                     }
                 }
             }
-            if(merInfo1==null)throw new LogicException("获取二维码失败，请重试");
+            if(merInfo1==null)throw new LogicException("获取支付链接失败，请重试");
             log.info("筛选到的商户编号为 {}",merInfo1.getMercNum());
             tradeData.setMerchantNo(merInfo1.getMercNum());
             Product product=productService.pickProduct(tradeData.getMerchantNo(),tradeAmount);
@@ -130,6 +130,7 @@ public class TradeDataService extends BaseService<TradeData> {
         Map<String,String> param=JSON.parseObject(str,Map.class);
         param.remove("downCallBackUrl");
         param.remove("tails");
+        param.remove("clientCode");
 
         String sign=Sha256.sha256ByAgentKey(param,APUtil.getAgentKey());
         param.put("sign",sign);
@@ -152,8 +153,12 @@ public class TradeDataService extends BaseService<TradeData> {
      * @param merOrder
      * @return
      */
-    public TradeData queryByMerchantNoAndMerOrder(String merNo,String merOrder){
-        return tplOne(TradeData.builder().merOrder(merOrder).merchantNo(merNo).build());
+    public TradeData queryByMerchantNoAndMerOrderAndClientCode(String merNo,String merOrder,String clientCode){
+        MerInfo merInfo=merInfoService.findByMercNum(merNo);
+        if(StrUtil.isBlank(clientCode))
+            return tplOne(TradeData.builder().channelCode(merInfo.getChannelCode()).merOrder(merOrder).build());
+        else
+            return tplOne(TradeData.builder().channelCode(merInfo.getChannelCode()).merOrder(merOrder).clientCode(clientCode).build());
     }
 
     /**
@@ -183,6 +188,8 @@ public class TradeDataService extends BaseService<TradeData> {
         TradeResp tradeResp=tradeClient.queryOrderStatus(JSON.toJSONString(param));
         if(tradeResp.getResCode().equals(Consts.TRADE_STATUS.CLOSEFAILURE.name()))
             tradeData.setOrderStatus(Consts.TRADE_STATUS.CLOSEFAILURE.getKey());
+        else if(tradeResp.getResCode().equals(Consts.TRADE_STATUS.SCAN_PAY_FAILD.name()))
+            tradeData.setOrderStatus(Consts.TRADE_STATUS.SCAN_PAY_FAILD.getKey());
         else
             tradeData.setOrderStatus(tradeResp.getOrderStatus());
         updateTplById(tradeData);
@@ -241,7 +248,7 @@ public class TradeDataService extends BaseService<TradeData> {
 
 
     }
-    @Scheduled(cron = "0 1 0 * * ?")
+//    @Scheduled(cron = "0 1 0 * * ?")
     public void channelT1TaskSchedule(){
         log.info("渠道T1统计开始");
         DateTime dateTime=DateUtil.yesterday();
@@ -249,7 +256,7 @@ public class TradeDataService extends BaseService<TradeData> {
         log.info("渠道T1统计结束");
     }
 
-    @Scheduled(cron = "0 1 0 * * ?")
+//    @Scheduled(cron = "0 1 0 * * ?")
     public void channelTsTaskSchedule(){
         log.info("渠道Ts统计开始");
         DateTime dateTime=DateUtil.yesterday();
@@ -258,7 +265,7 @@ public class TradeDataService extends BaseService<TradeData> {
     }
 
 
-    @Scheduled(cron = "0 1 0 * * ?")
+//    @Scheduled(cron = "0 1 0 * * ?")
     public void channelBrokerageTaskSchedule(){
         log.info("渠道佣金统计开始");
         DateTime dateTime=DateUtil.yesterday();
@@ -426,6 +433,7 @@ public class TradeDataService extends BaseService<TradeData> {
         param.remove("downCallBackUrl");
         param.remove("tails");
         param.put("version","1.0");
+        param.remove("clientCode");
 
         String sign=Sha256.sha256ByAgentKey(param,APUtil.getAgentKey());
         param.put("sign",sign);

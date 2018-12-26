@@ -20,9 +20,9 @@ public class SqlManageConfig {
         sqlManagerFactoryBean.setCs(beetlSqlDataSource);
         sqlManagerFactoryBean.setDbStyle(new MySqlStyle());
         sqlManagerFactoryBean.setNc(new DelSuffixConversion());
-        sqlManagerFactoryBean.setInterceptors(new Interceptor[]{
-                new DebugInterceptor()
-        });
+//        sqlManagerFactoryBean.setInterceptors(new Interceptor[]{
+//                new DebugInterceptor()
+//        });
         return sqlManagerFactoryBean;
     }
 

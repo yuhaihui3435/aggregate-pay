@@ -19,6 +19,7 @@ import com.xtf.aggregatepay.util.APUtil;
 import com.xtf.aggregatepay.util.EhcacheUtil;
 import com.xtf.aggregatepay.util.Sha256;
 import lombok.extern.log4j.Log4j2;
+import org.apache.tomcat.util.bcel.Const;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -174,7 +175,7 @@ public class MerInfoService extends BaseService<MerInfo> {
      * @return
      */
     public MerInfo queryMerInfoStatus(String merNum){
-        log.info("商户号 {} 进行商户状态查询",merNum);
+//        log.info("商户号 {} 进行商户状态查询",merNum);
         MerInfo query=MerInfo.builder().mercNum(merNum).dataStatus(Consts.STATUS.NORMAL.getVal()).build();
         MerInfo merInfo=tplOne(query);
         if(merInfo==null)throw new LogicException("商户信息不存在，或被禁用");
@@ -185,11 +186,11 @@ public class MerInfoService extends BaseService<MerInfo> {
             param.put("mercNum",merNum);
             String sign=Sha256.sha256ByAgentKey(param,agentKey);
             param.put("sign",sign);
-            log.info("商户号 {} 开始向渠道发送商户状态查询请求",merNum);
+//            log.info("商户号 {} 开始向渠道发送商户状态查询请求",merNum);
             String status=merchantClient.queryMerStatus(param);
-            log.info("商户号 {} 开始向渠道发送商户状态查询请求结果为 ${}",merNum,status);
+//            log.info("商户号 {} 开始向渠道发送商户状态查询请求结果为 ${}",merNum,status);
             if(!Consts.MER_STATUS.DDSH.name().equals(status)){
-                log.info("商户号 {} 状态发生了变化，更新商户状态",merNum);
+//                log.info("商户号 {} 状态发生了变化，更新商户状态",merNum);
                 merInfo.setStatus(status);
                 update(merInfo);
             }
@@ -234,8 +235,9 @@ public class MerInfoService extends BaseService<MerInfo> {
 
     @Scheduled(cron = "* 0/5 * * * ?")
     public void syncMerStatus(){
-        log.info("执行商户状态自动同步任务");
-        List<MerInfo> merInfos=tpl(MerInfo.builder().status(Consts.MER_STATUS.DDSH.name()).dataStatus(Consts.STATUS.NORMAL.getVal()).build());
+        //log.info("执行商户状态自动同步任务");
+        List<MerInfo> merInfos=sqlManager.lambdaQuery(MerInfo.class).andEq(MerInfo::getDataStatus,Consts.STATUS.NORMAL.getVal()).orEq(MerInfo::getStatus,Consts.MER_STATUS.DDSH.name()).orEq(MerInfo::getStatus, Consts.MER_STATUS.SHZ.name()).select();
+//        tpl(MerInfo.builder().status(Consts.MER_STATUS.DDSH.name()).dataStatus(Consts.STATUS.NORMAL.getVal()).build());
         merInfos.stream().forEach(merInfo -> {
             queryMerInfoStatus(merInfo.getMercNum());
         });

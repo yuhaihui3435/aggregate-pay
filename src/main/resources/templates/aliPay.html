@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>支付确认页面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.js"></script>
+    <script>
+        $(function() {
+            FastClick.attach(document.body);
+        });
+    </script>
+</head>
+<body>
+
+<div class="container-fluid" >
+    <div class="row">
+        <form id="dataForm" class="form-horizontal">
+            <input type="hidden" id="downCallBackUrl" name="downCallBackUrl" th:value="${tradeData.downCallBackUrl}">
+            <input type="hidden" id="pageBackUrl" name="pageBackUrl" th:value="${tradeData.pageBackUrl}">
+            <input type="hidden" id="merOrder" name="merOrder" th:value="${tradeData.merOrder}">
+            <input type="hidden" id="bizType" name="bizType" th:value="${tradeData.bizType}">
+            <input type="hidden" class="form-control" name="tradeAmount" th:value="${tradeData.tradeAmount}">
+            <input type="hidden" class="form-control" name="clientCode" value="C00020101">
+            <div class="form-group">
+                <label class="col-sm-2 control-label">订单编号</label>
+                <div class="col-sm-10" th:text="${tradeData.merOrder}"></div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">商户编号</label>
+                <div class="col-sm-10" th:text="${tradeData.merchantNo}"><input class="form-control" id="merchantNo" type="hidden" name="merchantNo" th:value="${tradeData.merchantNo}"></div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">商户名</label>
+                <div class="col-sm-10" th:text="${tradeData.merName}"></div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">产品名称</label>
+                <div class="col-sm-10" th:text="${tradeData.productName}"></div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">金额(单位分)</label><div class="col-sm-10" th:text="${tradeData.tradeAmount/100}">
+            </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="button" onclick="getQr()" class="btn btn-primary">支付</button>
+                    <button type="button" onclick="history.back()" class="btn btn-primary">返回</button>
+                </div>
+            </div>
+        </form>
+        <form id="form" action="/api/gzScan10" method="post">
+            <input type="hidden" id="jsonData" name="jsonData" >
+            <input type="hidden" id="sign" name="sign" th:value="${req_sign}" >
+        </form>
+    </div>
+</div>
+<div id="qrcode">
+
+</div>
+<script>
+    setInterval(queryOrder,1000)
+    function queryOrder() {
+        let merOrder=$("#merOrder").val();
+        let merchantNo=$("#merchantNo").val();
+        let sign=$("#sign").val();
+        if(merOrder!=''){
+            $.post("http://47.75.135.105/api/queryOrderStatus", {
+                    'merNo':merchantNo,
+                    'merOrder':merOrder,
+                    'amount':sign
+                }
+                , function (result) {
+                    if(result.orderStatus=='success'){
+                        location.href=result.pageBackUrl;
+                    }
+                })
+        }
+    }
+    $.fn.serializeObject = function()
+    {
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function() {
+            if (o[this.name] !== undefined) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
+    function getQr() {
+        let param=JSON.stringify($('#dataForm').serializeObject());
+        $("#jsonData").val(param)
+        $("#form").submit();
+
+    }
+</script>
+</body>
+</html>
