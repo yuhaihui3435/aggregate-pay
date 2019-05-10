@@ -173,7 +173,8 @@ public class ApiController extends BaseController {
         MerInfo merInfo = jsonObject.getObject("merInfo", MerInfo.class);
         MerBankInfo merBankInfo = jsonObject.getObject("merBankInfo", MerBankInfo.class);
         String ac = merInfo.getApCode();
-        ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), ac);
+//        ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), ac);
+        ApCode apCode=apCodeService.tplOne(ApCode.builder().apCode(ac).build());
         if (apCode == null) throw new LogicException("无效的ApCode");
         merInfo.setChannelCode(apCode.getChannelCode());
         //报文一致性检查
@@ -191,17 +192,17 @@ public class ApiController extends BaseController {
 
         //相关内置编码检查
         DictItem dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merInfo.getProvCode());
-        if (dictItem == null) throw new LogicException("商户信息中省份编号不存在");
-        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merInfo.getProvCode());
-        if (dictItem == null) throw new LogicException("商户信息中市编号不存在");
-        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merInfo.getProvCode());
-        if (dictItem == null) throw new LogicException("商户信息中区编号不存在");
-        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merBankInfo.getBankCode());
-        if (dictItem == null) throw new LogicException("商户银行卡信息中银行编号不存在");
-        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merBankInfo.getBankProvCode());
-        if (dictItem == null) throw new LogicException("商户银行卡信息中开户行省编码不存在");
-        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merBankInfo.getBankCityCode());
-        if (dictItem == null) throw new LogicException("商户银行卡信息中开户行市编码不存在");
+//        if (dictItem == null) throw new LogicException("商户信息中省份编号不存在");
+//        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merInfo.getProvCode());
+//        if (dictItem == null) throw new LogicException("商户信息中市编号不存在");
+//        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merInfo.getProvCode());
+//        if (dictItem == null) throw new LogicException("商户信息中区编号不存在");
+//        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merBankInfo.getBankCode());
+//        if (dictItem == null) throw new LogicException("商户银行卡信息中银行编号不存在");
+//        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merBankInfo.getBankProvCode());
+//        if (dictItem == null) throw new LogicException("商户银行卡信息中开户行省编码不存在");
+//        dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merBankInfo.getBankCityCode());
+//        if (dictItem == null) throw new LogicException("商户银行卡信息中开户行市编码不存在");
         Consts.MERTYPE mertype = Consts.MERTYPE.valueOf(merInfo.getMercType());
         if (mertype == null) throw new LogicException("商户类型不存在，应该为business或者personal");
         dictItem = (DictItem) EhcacheUtil.getInstance().get(DictItem.class.getSimpleName(), merInfo.getCustomMccType());
@@ -304,6 +305,7 @@ public class ApiController extends BaseController {
         String json = apiReq.getJsonData();
         log.info("交易数据:{}", json);
         String req_sign = apiReq.getSign();
+        log.info("签名数据:{}",req_sign);
         TradeData tradeData = JSONObject.parseObject(json, TradeData.class);
         String mo=tradeData.getMerOrder();
         TradeData td=tradeDataService.tplOne(TradeData.builder().merOrder(mo).build());
@@ -313,18 +315,26 @@ public class ApiController extends BaseController {
         }
 
         String merNum = tradeData.getMerchantNo();
+        log.info("商户编号:{}",merNum);
         if(StrUtil.isBlank(merNum)){
             return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("缺少商户编号").build();
         }
+        log.info("客户编号:{}",tradeData.getClientCode());
+        //检查客户状态
+        merInfoService.checkClient(tradeData.getClientCode());
+
         //商户状态
         MerInfo merInfo = merInfoService.checkMerInfoStatus(merNum);
+        log.info("渠道编号:{}",merInfo);
+
         ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), merInfo.getApCode());
         //报文一致性检查
 
 //        HashMap jsonMap=JSON.parseObject(json,HashMap.class);
         if(!req_sign.equals("89830490")) {
             String sign = Sha256.sha256ByAgentKey(json, apCode.getApKey());
-            if (!req_sign.equals(sign)) {
+            log.info("计算得到的签名值为:{}",sign);
+            if (!req_sign.toUpperCase().equals(sign)) {
                 throw new LogicException("报文签名不一致，处理失败。");
             }
         }
@@ -362,38 +372,41 @@ public class ApiController extends BaseController {
         if (!req_sign.equals(sign)) log.error(msgProp.getServerRetSign_err());
         TradeData tradeData = tradeDataService.queryByMerchantNoAndMerOrderAndClientCode(merNo, merOrder,null);
         if (tradeData == null) log.error("交易回调处理，未找到对应的交易记录");
-        String resCode = map.get("resCode");
-        String payOrderNo = map.get("payOrderNo");
-        String bankOrder = map.get("bankOrder");
-        String finishTime = map.get("finishTime");
-        String time_end = map.get("time_end");
-        tradeData.setPayOrderNo(payOrderNo);
-        tradeData.setBankOrder(bankOrder);
-        tradeData.setFinishTime(finishTime);
-        tradeData.setTimeEnd(time_end);
-        tradeData.setOrderStatus(Consts.TRADE_STATUS.SUCCESS.getKey());
-        tradeDataService.updateTplById(tradeData);
-        log.info("交易数据更新成功 交易订单号: {},商户号 {},交易金额 {}", merOrder, merNo, amount);
-        //清理商户账户占用表数据
-        MerUsing merUsing=merUsingService.tplOne(MerUsing.builder().merNo(merNo).orderNo(merOrder).build());
-        if(merUsing!=null)merUsingService.del(merUsing.getId());
-        String downCallbackUrl = tradeData.getDownCallBackUrl();
-        String pageBackUrl=tradeData.getPageBackUrl();
 
-        tradeSettleService.addTradeSettle(merOrder,new BigDecimal(amount).divide(new BigDecimal(100)));
+        if(tradeData.getDownCallBackRetLasttime()==null) {
+            String resCode = map.get("resCode");
+            String payOrderNo = map.get("payOrderNo");
+            String bankOrder = map.get("bankOrder");
+            String finishTime = map.get("finishTime");
+            String time_end = map.get("time_end");
+            tradeData.setPayOrderNo(payOrderNo);
+            tradeData.setBankOrder(bankOrder);
+            tradeData.setFinishTime(finishTime);
+            tradeData.setTimeEnd(time_end);
+            tradeData.setOrderStatus(Consts.TRADE_STATUS.SUCCESS.getKey());
+            tradeDataService.updateTplById(tradeData);
+            log.info("交易数据更新成功 交易订单号: {},商户号 {},交易金额 {}", merOrder, merNo, amount);
+            //清理商户账户占用表数据
+            MerUsing merUsing = merUsingService.tplOne(MerUsing.builder().merNo(merNo).orderNo(merOrder).build());
+            if (merUsing != null) merUsingService.del(merUsing.getId());
+            String downCallbackUrl = tradeData.getDownCallBackUrl();
+            String pageBackUrl = tradeData.getPageBackUrl();
 
-        if (StrUtil.isBlank(downCallbackUrl)) log.error("下游回调地址未设置");
-        else {
-            MerInfo merInfo = merInfoService.findByMercNum(merNo);
-            map.clear();
-            map.put("merNo",tradeData.getMerchantNo());
-            map.put("merOrder",tradeData.getMerOrder());
-            map.put("tradeAmount",tradeData.getTradeAmount());
-            map.put("orderStatus",tradeData.getOrderStatus());
-            ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), merInfo.getApCode());
-            String resp_sign=Sha256.sha256ByAgentKey(map,apCode.getApKey());
-            map.put("sign",resp_sign);
-            tradeDataService.notifyDown(downCallbackUrl,map);
+            tradeSettleService.addTradeSettle(merOrder, new BigDecimal(amount).divide(new BigDecimal(100)));
+
+            if (StrUtil.isBlank(downCallbackUrl)) log.error("下游回调地址未设置");
+            else {
+                MerInfo merInfo = merInfoService.findByMercNum(merNo);
+                map.clear();
+                map.put("merNo", tradeData.getMerchantNo());
+                map.put("merOrder", tradeData.getMerOrder());
+                map.put("tradeAmount", tradeData.getTradeAmount());
+                map.put("orderStatus", tradeData.getOrderStatus());
+                ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), merInfo.getApCode());
+                String resp_sign = Sha256.sha256ByAgentKey(map, apCode.getApKey());
+                map.put("sign", resp_sign);
+                tradeDataService.notifyDown(downCallbackUrl, map);
+            }
         }
     }
 
@@ -514,6 +527,7 @@ public class ApiController extends BaseController {
     @ResponseBody
     public String refreshCache(){
         dictService.dictCache();
+
         return Consts.SYS_COMMON_SUCCESS_CODE;
     }
 
@@ -585,6 +599,8 @@ public class ApiController extends BaseController {
             model.addAttribute("msg","缺少商户编号");
             return ApiResp.builder().respCode(Consts.SYS_COMMON_FAIL_CODE).respMsg("缺少商户编号").build();
         }
+        //检查客户状态
+        merInfoService.checkClient(tradeData.getClientCode());
         //商户状态
         MerInfo merInfo = merInfoService.checkMerInfoStatus(merNum);
         ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), merInfo.getApCode());
@@ -650,6 +666,12 @@ public class ApiController extends BaseController {
         String ret_sign = Sha256.sha256ByAgentKey(jsonObject, apCode.getApKey());
         return ApiResp.builder().respCode(Consts.SYS_COMMON_SUCCESS_CODE).respMsg("主扫交易成功").jsonData(jsonObject).sign(ret_sign).build();
 
+    }
+
+    @PostMapping(value = "/toGzAlP")
+    public String toGzAlP( TradeData tradeData,Model model){
+        model.addAttribute("tradeData",tradeData);
+        return "pay";
     }
 
 }

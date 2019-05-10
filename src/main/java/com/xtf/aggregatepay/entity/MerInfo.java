@@ -205,6 +205,7 @@ public class MerInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 	@Transient
 	private Date eCreateTime;
 	private String appid;
+	private String pick;
 
 
 

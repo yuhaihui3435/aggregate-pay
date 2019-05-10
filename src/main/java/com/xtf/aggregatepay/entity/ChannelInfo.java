@@ -133,6 +133,14 @@ public class ChannelInfo extends com.xtf.aggregatepay.core.BaseEntity  {
 
 	private String type;
 
+	private BigDecimal minimumLimit;
+
+	private String startAt;
+
+	private String endAt;
+
+	private String online;
+
 	@Tolerate
 	public ChannelInfo() {
 	}

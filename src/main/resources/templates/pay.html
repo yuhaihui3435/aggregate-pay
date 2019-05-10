@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+<form id="zhifuForm" method="get" target="_self">
+
+</form>
+
+
+</body>
+</html>
+<script th:inline="javascript">
+
+    var downCallBackUrl=[[${tradeData.downCallBackUrl}]];
+    var pageBackUrl=[[${tradeData.pageBackUrl}]];
+    var merOrder=[[${tradeData.merOrder}]];
+    var merchantNo=[[${tradeData.merchantNo}]];
+    var clientCode=[[${tradeData.clientCode}]];
+    var productName=[[${tradeData.productName}]];
+    var tradeAmount=[[${tradeData.tradeAmount}]];
+    var bizType=[[${tradeData.bizType}]];
+
+    var data={'bizType':bizType,'clientCode':clientCode,'merchantNo':merchantNo,'merOrder':merOrder,'downCallBackUrl':downCallBackUrl,
+        'pageBackUrl':pageBackUrl,'productName':productName,'tradeAmount':tradeAmount};
+
+    data=JSON.stringify(data);
+
+
+    $.post("http://47.75.135.105/api/gzScan10", {
+            'jsonData': data,
+            'sign': '89830490'
+        }
+        , function (result) {
+            console.info(result);
+            if (result.respCode == 'success') {
+                // let zhifuForm = $("#zhifuForm");
+                // zhifuForm.attr("action", result.jsonData.codeUrl);
+                // zhifuForm.submit();
+
+                var alipayurl='alipays://platformapi/startapp?appId=20000067&url='+encodeURI(result.jsonData.codeUrl);
+                console.info(alipayurl)
+                window.location.href=alipayurl;
+            } else {
+                alert(result.respMsg);
+            }
+        })
+
+
+
+</script>

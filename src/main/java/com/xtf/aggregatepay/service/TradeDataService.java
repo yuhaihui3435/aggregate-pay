@@ -3,6 +3,7 @@ package com.xtf.aggregatepay.service;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.mail.MailUtil;
@@ -30,20 +31,6 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.util.*;
 
-/**
- * 简介
- * <p>
- * 项目名称:   [aggregate-pay]
- * 包:        [com.xtf.aggregatepay.service]
- * 类名称:    [TradeDataService]
- * 类描述:    []
- * 创建人:    [于海慧]
- * 创建时间:  [2018/9/8]
- * 修改人:    []
- * 修改时间:  []
- * 修改备注:  []
- * 版本:     [v1.0]
- */
 @Service
 @Log4j2
 @Transactional
@@ -71,6 +58,8 @@ public class TradeDataService extends BaseService<TradeData> {
     private MerUsingService merUsingService;
     @Autowired
     private ProductService productService;
+    @Autowired
+    private TradeSettleService tradeSettleService;
 
 
     /**
@@ -91,9 +80,35 @@ public class TradeDataService extends BaseService<TradeData> {
     @Transactional
     public TradeData zscan(TradeData tradeData, MerInfo merInfo){
         log.info("开始进行主扫处理");
-        //金额是否超过最大设置检查
 
+
+
+        //金额是否超过最大设置检查
         ChannelInfo channelInfo=channelInfoService.findByCode(merInfo.getChannelCode());
+        String startAt=channelInfo.getStartAt();
+        String endAt=channelInfo.getEndAt();
+        //如果有关闭时间控制
+        if(StrUtil.isNotBlank(startAt)&&StrUtil.isNotBlank(endAt)){
+            String today=DateUtil.today();
+            endAt=today+" "+(endAt.length()==4?"0"+endAt:endAt);
+            startAt=today+" "+(startAt.length()==4?"0"+startAt:startAt);
+            try {
+                DateTime startDT = DateUtil.parse(startAt);
+                DateTime endDT = DateUtil.parse(endAt);
+                DateTime now=DateUtil.parse(DateUtil.now());
+                if(DateUtil.isIn(now,startDT,endDT)){
+                    throw new LogicException("支付通道已经停止工作");
+                }
+            }catch (Exception e){
+                if(e instanceof LogicException)throw  e;
+                log.error("在线时间段解析出现了错误,原因:{}",e.getMessage());
+            }
+        }
+        //支付通道在线状态
+        if(StrUtil.isNotBlank(channelInfo.getOnline())&&channelInfo.getOnline().equals("n"))throw new LogicException("支付通道已经停止工作");
+        if(channelInfo.getMinimumLimit().compareTo(new BigDecimal(tradeData.getTradeAmount()).divide(new BigDecimal(100)))==1){
+            throw new LogicException("交易金额小于最小限额要求，交易金额不能小于"+channelInfo.getMinimumLimit().toString());
+        }
         if(channelInfo.getType().equals("1"))
             merQuotaCheck(merInfo.getChannelCode(),merInfo.getMercNum(),new BigDecimal(tradeData.getTradeAmount()));
         BigDecimal tradeAmount=new BigDecimal(tradeData.getTradeAmount()).divide(new BigDecimal(100));
@@ -155,10 +170,15 @@ public class TradeDataService extends BaseService<TradeData> {
      */
     public TradeData queryByMerchantNoAndMerOrderAndClientCode(String merNo,String merOrder,String clientCode){
         MerInfo merInfo=merInfoService.findByMercNum(merNo);
-        if(StrUtil.isBlank(clientCode))
-            return tplOne(TradeData.builder().channelCode(merInfo.getChannelCode()).merOrder(merOrder).build());
-        else
-            return tplOne(TradeData.builder().channelCode(merInfo.getChannelCode()).merOrder(merOrder).clientCode(clientCode).build());
+        List<TradeData> tradeDataList=null;
+        if(StrUtil.isBlank(clientCode)) {
+             tradeDataList = sqlManager.lambdaQuery(TradeData.class).andEq(TradeData::getChannelCode, merInfo.getChannelCode()).andEq(TradeData::getMerOrder, merOrder).andIsNull(TradeData::getDeleteTime).select();
+            return tradeDataList.isEmpty()?null:tradeDataList.get(0);
+        }
+        else {
+            tradeDataList = sqlManager.lambdaQuery(TradeData.class).andEq(TradeData::getChannelCode, merInfo.getChannelCode()).andEq(TradeData::getMerOrder, merOrder).andIsNull(TradeData::getDeleteTime).andEq(TradeData::getClientCode,clientCode).select();
+            return tradeDataList.isEmpty()?null:tradeDataList.get(0);
+        }
     }
 
     /**
@@ -190,6 +210,27 @@ public class TradeDataService extends BaseService<TradeData> {
             tradeData.setOrderStatus(Consts.TRADE_STATUS.CLOSEFAILURE.getKey());
         else if(tradeResp.getResCode().equals(Consts.TRADE_STATUS.SCAN_PAY_FAILD.name()))
             tradeData.setOrderStatus(Consts.TRADE_STATUS.SCAN_PAY_FAILD.getKey());
+        else if(tradeResp.getResCode().equals(Consts.TRADE_STATUS.SUCCESS.name())) {
+
+            tradeSettleService.addTradeSettle(tradeData.getMerOrder(), new BigDecimal(tradeData.getTradeAmount()).divide(new BigDecimal(100)));
+            //清理商户账户占用表数据
+            MerUsing merUsing = merUsingService.tplOne(MerUsing.builder().merNo(tradeData.getMerchantNo()).orderNo(tradeData.getMerOrder()).build());
+            if (merUsing != null) merUsingService.del(merUsing.getId());
+            String downCallbackUrl = tradeData.getDownCallBackUrl();
+            if(StrUtil.isNotBlank(downCallbackUrl)) {
+                log.info("同步交易状态后，通知下游回调，交易支付成功,订单号:{}",tradeData.getMerOrder());
+                MerInfo merInfo = merInfoService.findByMercNum(tradeData.getMerchantNo());
+                Map<String, String> map = new HashMap<>();
+                map.put("merNo", tradeData.getMerchantNo());
+                map.put("merOrder", tradeData.getMerOrder());
+                map.put("tradeAmount", tradeData.getTradeAmount());
+                map.put("orderStatus", tradeData.getOrderStatus());
+                ApCode apCode = (ApCode) EhcacheUtil.getInstance().get(ApCode.class.getSimpleName(), merInfo.getApCode());
+                String resp_sign = Sha256.sha256ByAgentKey(map, apCode.getApKey());
+                map.put("sign", resp_sign);
+                notifyDown(downCallbackUrl, map);
+            }
+        }
         else
             tradeData.setOrderStatus(tradeResp.getOrderStatus());
         updateTplById(tradeData);
@@ -396,6 +437,34 @@ public class TradeDataService extends BaseService<TradeData> {
         //金额是否超过最大设置检查
 
         ChannelInfo channelInfo=channelInfoService.findByCode(merInfo.getChannelCode());
+
+        String startAt=channelInfo.getStartAt();
+        String endAt=channelInfo.getEndAt();
+        //如果有在线时间控制
+        if(StrUtil.isNotBlank(startAt)&&StrUtil.isNotBlank(endAt)){
+            String today=DateUtil.today();
+            endAt=today+" "+(endAt.length()==4?"0"+endAt:endAt);
+            startAt=today+" "+(startAt.length()==4?"0"+startAt:startAt);
+            try {
+                DateTime startDT = DateUtil.parse(startAt);
+                DateTime endDT = DateUtil.parse(endAt);
+                DateTime now=DateUtil.parse(DateUtil.now());
+                if(DateUtil.isIn(now,startDT,endDT)){
+                    throw new LogicException("支付通道已经停止工作");
+                }
+            }catch (Exception e){
+                if(e instanceof LogicException)throw  e;
+                log.error("在线时间段解析出现了错误,原因:{}",e.getMessage());
+            }
+        }
+        //支付通道在线状态
+        if(StrUtil.isNotBlank(channelInfo.getOnline())&&channelInfo.getOnline().equals("n"))throw new LogicException("支付通道已经停止工作");
+
+//        if(StrUtil.isBlank(tradeData.getPageBackUrl()))tradeData.setPageBackUrl("http://47.75.135.105/api/gzaliSuccess");
+        tradeData.setPageBackUrl("http://47.75.135.105/api/gzaliSuccess");
+        if(channelInfo.getMinimumLimit().compareTo(new BigDecimal(tradeData.getTradeAmount()).divide(new BigDecimal(100)))==1){
+            throw new LogicException("交易金额小于最小限额要求，交易金额不能小于"+channelInfo.getMinimumLimit().toString());
+        }
         if(channelInfo.getType().equals("1"))
             merQuotaCheck(merInfo.getChannelCode(),merInfo.getMercNum(),new BigDecimal(tradeData.getTradeAmount()));
         BigDecimal tradeAmount=new BigDecimal(tradeData.getTradeAmount()).divide(new BigDecimal(100));
@@ -404,7 +473,8 @@ public class TradeDataService extends BaseService<TradeData> {
         log.info("开始交易数据整理");
         //挑选商户号
         String orginMerNo=tradeData.getMerchantNo();
-        if(channelInfo!=null&&channelInfo.getType().equals("2")){
+
+        if(channelInfo!=null&&channelInfo.getType().equals("2")&&merInfo.getPick()!=null&&merInfo.getPick().equals("0")){
             MerInfo merInfo1=null;
             for(int i=0;i<5;i++){
                 log.info("执行第{}次筛选商户处理",i+1);
@@ -426,7 +496,7 @@ public class TradeDataService extends BaseService<TradeData> {
             tradeData.setProductName(product==null?tradeData.getProductName():RandomUtil.randomString(merInfo1.getMercName(),2)+product.getProductName());
         }
         tradeData.setCallBackUrl(tradeCallbackUrl);
-        tradeData.setTradeType(Consts.TRADE_TYPE.XXZSCAN.getVal());
+        tradeData.setTradeType(Consts.TRADE_TYPE.GZZZ.getVal());
         tradeData.setAgentNo(APUtil.getAgentNum());
         String str=JSON.toJSONString(tradeData);
         Map<String,String> param=JSON.parseObject(str,Map.class);
@@ -468,4 +538,24 @@ public class TradeDataService extends BaseService<TradeData> {
         if(merSumAmountNow!=null&&merSumAmountNow.divide(new BigDecimal(100)).compareTo(maxAmountOfDay)!=-1)throw new LogicException("交易金额已经超过今日上限,上限为："+maxAmountOfDay);
     }
 
+    /**
+     *
+     * 每半小时同步交易状态
+     *
+     */
+    @Scheduled(cron = "0 0,30 * * * ?")
+    private void syncTradeStatus() {
+        List<TradeData> tradeDatas = sqlManager.lambdaQuery(TradeData.class).andEq(TradeData::getOrderStatus, "processing").andIsNull(TradeData::getDeleteTime).select();
+        log.info("于{}同步交易状态，本次同步记录数为{}",DateUtil.now(),tradeDatas.size());
+        TradeData tradeData = null;
+        for (int i = 0; i < tradeDatas.size(); i++) {
+            tradeData = tradeDatas.get(i);
+            queryOrderStatus(tradeData);
+        }
+    }
+
+
+    public static void main(String[] args) {
+
+    }
 }
