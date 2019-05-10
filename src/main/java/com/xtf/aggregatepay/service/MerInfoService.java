@@ -147,6 +147,7 @@ public class MerInfoService extends BaseService<MerInfo> {
         param.put("merImg",JSON.toJSONString(picMap).replaceAll("\"","\\\""));
         param.put("rateCode",merInfo.getRateCode());
         param.put("settleWay", merInfo.getSettleWay());
+        param.put("incomeType","normal");
         Map<String,String> product=new HashMap<>();
         product.put("scan","ALIPAY,WECHATPAY");
         param.put("product",JSON.toJSONString(product).replaceAll("\"","\\\""));

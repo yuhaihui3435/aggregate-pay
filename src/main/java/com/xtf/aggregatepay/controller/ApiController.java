@@ -159,8 +159,8 @@ public class ApiController extends BaseController {
             throw new LogicException("商户基本信息数据缺失");
         }
         //必须上传 营业执照照片，身份证正面，身份证背面
-        if (files == null || files.length < 5) {
-            throw new LogicException("营业执照、法人身份证正面、法人身份证背面照片必传、门店照片、银行卡照片");
+        if (files == null || files.length < 9) {
+            throw new LogicException("银行卡正面、开户许可证、营业执照、店内照片、门面照片、收银台照片、法人身份证正面、法人身份证反面、红盾网截图");
         }
         log.info("商户全部信息:{}", json);
         String req_sign = apiReq.getSign();
