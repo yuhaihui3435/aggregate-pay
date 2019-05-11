@@ -134,7 +134,7 @@ public class MerTest {
      */
     @Test
     public void queryMerList(){
-        HttpResponse httpResponse= HttpRequest.post("http://47.75.135.105/api/queryMerList").form("pageNumber",1).form("channelCode","10000000").execute();
+        HttpResponse httpResponse= HttpRequest.post("http://localhost:8085/api/queryMerList").form("pageNumber",1).form("channelCode","10000002").execute();
         log.info(httpResponse.body());
     }
 

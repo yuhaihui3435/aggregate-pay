@@ -33,8 +33,7 @@ public class TradeSettleService extends BaseService<TradeSettle> {
         if(tradeSettle!=null)return;
 
         ChannelInfo channelInfo=channelInfoService.findByCode(channelCode);
-        String channelTsrateCode=channelInfo.getTsRateCode();
-        BigDecimal channelTsrate=APUtil.getRate(channelCode);
+        BigDecimal channelTsrate=APUtil.getRate(channelInfo.getTsRateCode());
         ClientInfo clientInfo=clientInfoService.tplOne(ClientInfo.builder().clientCode(clientCode).build());
         if(clientInfo==null){
             log.error("{}客户信息未查询到",clientCode);
@@ -49,7 +48,7 @@ public class TradeSettleService extends BaseService<TradeSettle> {
         clientAmount=amount.subtract(clientAmount);
 
         BigDecimal channelSubAmount=channelSubInfo.getTsrate()==null?l:(clientInfo.getTsRate().subtract(channelSubInfo.getTsrate())).multiply(amount).divide(yb).setScale(2,BigDecimal.ROUND_HALF_UP);
-        channelSubAmount=amount.subtract(channelSubAmount);
+//        channelSubAmount=amount.subtract(channelSubAmount);
 
 
         BigDecimal channelAmount=amount.multiply(channelTsrate).add(new BigDecimal(0.2)).setScale(2,BigDecimal.ROUND_HALF_UP);

@@ -10,12 +10,12 @@ sample
 
 cols
 ===
-	REVISION,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME,DELETE_TIME,DELETE_BY,ID,MERC_TYPE,CUSTOM_MCC_TYPE,MERC_NUM,MERC_NAME,PROV_CODE,CITY_CODE,AREA_CODE,LEGAL_PERSON,LEGAL_PHONE,BUS_LICENSE_NO,BUS_LICENSE_VALIDITY_PEROID,LINK_PERSON,LINK_PHONE,MERC_SHORT_NAME,ADDR_DETAIL,INCOME_TYPE,RATE_CODE,CHANNEL_CODE,RATE,STATUS,DATA_STATUS,SETTLE_WAY,PRODUCT,EMAIL,AP_CODE,AP_MERC_CODE,CHANNEL_CODE,APPID
+	REVISION,CREATED_BY,CREATED_TIME,UPDATED_BY,UPDATED_TIME,DELETE_TIME,DELETE_BY,ID,MERC_TYPE,CUSTOM_MCC_TYPE,MERC_NUM,MERC_NAME,PROV_CODE,CITY_CODE,AREA_CODE,LEGAL_PERSON,LEGAL_PHONE,BUS_LICENSE_NO,BUS_LICENSE_VALIDITY_PEROID,LINK_PERSON,LINK_PHONE,MERC_SHORT_NAME,ADDR_DETAIL,INCOME_TYPE,RATE_CODE,CHANNEL_CODE,RATE,STATUS,DATA_STATUS,SETTLE_WAY,PRODUCT,EMAIL,AP_CODE,AP_MERC_CODE,CHANNEL_CODE,APPID,PICK
 
 updateSample
 ===
 	
-	REVISION=#revision#,CREATED_BY=#createdBy#,CREATED_TIME=#createdTime#,UPDATED_BY=#updatedBy#,UPDATED_TIME=#updatedTime#,DELETE_TIME=#deleteTime#,DELETE_BY=#deleteBy#,ID=#id#,MERC_TYPE=#mercType#,CUSTOM_MCC_TYPE=#customMccType#,MERC_NUM=#mercNum#,MERC_NAME=#mercName#,PROV_CODE=#provCode#,CITY_CODE=#cityCode#,AREA_CODE=#areaCode#,LEGAL_PERSON=#legalPerson#,LEGAL_PHONE=#legalPhone#,BUS_LICENSE_NO=#busLicenseNo#,BUS_LICENSE_VALIDITY_PEROID=#busLicenseValidityPeroid#,LINK_PERSON=#linkPerson#,LINK_PHONE=#linkPhone#,MERC_SHORT_NAME=#mercShortName#,ADDR_DETAIL=#addrDetail#,INCOME_TYPE=#incomeType#,RATE_CODE=#rateCode#,CHANNEL_CODE=#channelCode#,RATE=#rate#,STATUS=#status#,DATA_STATUS=#dataStatus#,SETTLE_WAY=#settleWay#,PRODUCT=#product#,EMAIL=#email#,AP_CODE=#apCode#,AP_MERC_CODE=#apMercCode#,CHANNEL_CODE=#channelCode#,APPID=#appid#
+	REVISION=#revision#,CREATED_BY=#createdBy#,CREATED_TIME=#createdTime#,UPDATED_BY=#updatedBy#,UPDATED_TIME=#updatedTime#,DELETE_TIME=#deleteTime#,DELETE_BY=#deleteBy#,ID=#id#,MERC_TYPE=#mercType#,CUSTOM_MCC_TYPE=#customMccType#,MERC_NUM=#mercNum#,MERC_NAME=#mercName#,PROV_CODE=#provCode#,CITY_CODE=#cityCode#,AREA_CODE=#areaCode#,LEGAL_PERSON=#legalPerson#,LEGAL_PHONE=#legalPhone#,BUS_LICENSE_NO=#busLicenseNo#,BUS_LICENSE_VALIDITY_PEROID=#busLicenseValidityPeroid#,LINK_PERSON=#linkPerson#,LINK_PHONE=#linkPhone#,MERC_SHORT_NAME=#mercShortName#,ADDR_DETAIL=#addrDetail#,INCOME_TYPE=#incomeType#,RATE_CODE=#rateCode#,CHANNEL_CODE=#channelCode#,RATE=#rate#,STATUS=#status#,DATA_STATUS=#dataStatus#,SETTLE_WAY=#settleWay#,PRODUCT=#product#,EMAIL=#email#,AP_CODE=#apCode#,AP_MERC_CODE=#apMercCode#,CHANNEL_CODE=#channelCode#,APPID=#appid#,PICK=#pick#
 
 condition
 ===
@@ -36,9 +36,9 @@ condition
 	@if(!isEmpty(updatedTime)){
 	 and UPDATED_TIME=#updatedTime#
 	@}
-	@if(!isEmpty(deleteTime)){
-	 and DELETE_TIME=#deleteTime#
-	@}
+	
+	and DELETE_TIME is null
+	
 	@if(!isEmpty(deleteBy)){
 	 and DELETE_BY=#deleteBy#
 	@}
@@ -132,6 +132,9 @@ condition
     @if(!isEmpty(appid)){
      and APPID<=#appid#
     @}
+    @if(!isEmpty(pick)){
+         and PICK<=#pick#
+        @}
    
 pickMerInfo
 ===
@@ -139,7 +142,7 @@ pickMerInfo
  select m.* from 
  MER_INFO_T m where  
  m.CHANNEL_CODE=#channelCode# 
- and m.data_status='0' and m.status='SHTG' 
+ and m.data_status='0' and m.status='SHTG' and m.delete_time is null and pick='0'
  and(((select Count(id) from MER_USING_T where mer_no=m.MERC_NUM )< #merUseCount#
  and (select TIMESTAMPDIFF(SECOND,max(use_time),NOW()) from MER_USING_T where mer_no=m.MERC_NUM)>#merTimeInterval# ) 
  or (select Count(id) from MER_USING_T where mer_no=m.MERC_NUM )=0)

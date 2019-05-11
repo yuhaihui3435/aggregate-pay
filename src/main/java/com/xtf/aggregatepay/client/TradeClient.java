@@ -86,24 +86,24 @@ public class TradeClient {
                 if (httpResponse.getStatus() != 200) {
                     log.error("下游交易回调响应失败，响应码 {},执行重试", httpResponse.getStatus());
                 } else if (returnResCode == null || returnResCode.equals( Consts.SYS_COMMON_SUCCESS_CODE)) {
-                    i = 3;
                     log.info("下游交易回调成功");
+                    break;
                 }
             } catch (Exception e) {
                 log.error("下游交易请求失败，执行重试{}",e.getMessage());
             }
-            i++;
-            if(returnResCode==null)returnResCode=Consts.SYS_COMMON_FAIL_CODE;
-            TradeData tradeData=tradeDataService.tplOne(TradeData.builder().merOrder((String)map.get("merOrder"))
-                    .merchantNo((String)map.get("merNo")).build());
-            log.info("更新下游交易回调响应结果,响应结果为{}",returnResCode);
-            if(tradeData!=null){
-                tradeData.setDownCallBackRet(returnResCode);
-                tradeData.setDownCallBackRetLasttime(new Date());
-                tradeDataService.update(tradeData);
-            }
-            log.info("更新下游交易回调响应结果完成");
         }
+
+        if(returnResCode==null)returnResCode=Consts.SYS_COMMON_FAIL_CODE;
+        TradeData tradeData=tradeDataService.tplOne(TradeData.builder().merOrder((String)map.get("merOrder"))
+                .merchantNo((String)map.get("merNo")).build());
+        log.info("更新下游交易回调响应结果,响应结果为{}",returnResCode);
+        if(tradeData!=null){
+            tradeData.setDownCallBackRet(returnResCode);
+            tradeData.setDownCallBackRetLasttime(new Date());
+            tradeDataService.update(tradeData);
+        }
+        log.info("更新下游交易回调响应结果完成");
     }
 
     /**

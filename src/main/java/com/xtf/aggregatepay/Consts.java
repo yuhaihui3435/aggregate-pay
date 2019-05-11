@@ -10,7 +10,8 @@ public interface Consts {
 
      enum PicType{
          LICENSE(0,"营业执照照片","licenseId"),PICPEOBLE(1,"手持身份证照片","picPeobleId"),BANKCARD(2,"银行卡照片","bankCardId"),CARD(3,"身份证正面照片","cardId"),BACKCARD(4,"身份证背面照片","backCarId"),POWER(5,"非法人结算授权书照片","PowerId"),
-         PROTOCOLPHOTO(6,"商户协议照片","protocolPhotoId"),MAINPHOTO(7,"门头照","mainPhotoId"),ORGPHOTO(8,"组织机构代码证照片","orgPhotoId");
+         PROTOCOLPHOTO(6,"商户协议照片","protocolPhotoId"),MAINPHOTO(7,"门头照","mainPhotoId"),ORGPHOTO(8,"组织机构代码证照片","orgPhotoId"),CHECKOUTPICTURE(9,"收银台照片","checkOutPicture"),ACCOUNTOPENIMAG(10,"开户许可证","accountOpenImag"),
+         STOREFRONTPICTURE(11,"店内照片","storeFrontPicture"),REDSHIELDPICTURE(12,"红盾网截图","redShieldPicture"),POWERID(13,"授权书","powerId");
          private int val;
          private String name;
          private String str;

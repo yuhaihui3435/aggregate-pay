@@ -29,15 +29,19 @@
 
 <div class="container-fluid">
     <div class="row">
-        <form id="dataForm" class="form-horizontal">
+        <form id="dataForm" class="form-horizontal" name="tradeData" action="http://47.75.135.105/api/toGzAlP" method="post" target="_blank">
             <input type="hidden" id="downCallBackUrl" name="downCallBackUrl" value="http://47.75.135.105/api/test">
             <input type="hidden" id="pageBackUrl" name="pageBackUrl" value="http://47.75.135.105/api/gzaliSuccess">
             <input type="hidden" id="merOrder" name="merOrder">
-            <input type="text" id="clientCode" name="clientCode" value="C00020101">
+
             <div class="form-group">
                 <label class="col-sm-2 control-label">商户编号</label>
                 <div class="col-sm-10"><input class="form-control" id="merchantNo" type="text" name="merchantNo"
                                               value="M233213761533718288057483"></div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">客户号</label>
+                <div class="col-sm-10"><input type="text" id="clientCode" name="clientCode" value="C00020101"></div>
             </div>
             <div class="form-group">
                 <label class="col-sm-2 control-label">产品名称</label>
@@ -63,7 +67,7 @@
             </div>
             <div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
-                    <button type="button" onclick="getQr()" class="btn btn-primary">Sign in</button>
+                    <button type="button" onclick="submitForm()" class="btn btn-primary">提交</button>
                 </div>
             </div>
         </form>
@@ -72,27 +76,22 @@
             <input type="hidden" id="sign" name="sign" value="89830490">
 
         </form>
-        <form id="zhifuForm" method="get" target="_blank">
-
-        </form>
-
     </div>
 </div>
 <div id="qrcode">
 
 </div>
 <script>
-    setInterval(queryOrder, 1000)
-
     function queryOrder() {
         let merOrder = $("#merOrder").val();
         let merchantNo = $("#merchantNo").val();
+        let clientCode = $("#clientCode").val();
         if (merOrder != '') {
             $.post("http://47.75.135.105/api/queryOrderStatus", {
                     'merNo': merchantNo,
                     'merOrder': merOrder,
                     'amount': '89830490',
-                    'clientCode':'C00020101'
+                    'clientCode':clientCode
                 }
                 , function (result) {
                     if (result.orderStatus == 'success') {
@@ -102,57 +101,64 @@
         }
     }
 
-    $.fn.serializeObject = function () {
-        var o = {};
-        var a = this.serializeArray();
-        $.each(a, function () {
-            if (o[this.name] !== undefined) {
-                if (!o[this.name].push) {
-                    o[this.name] = [o[this.name]];
-                }
-                o[this.name].push(this.value || '');
-            } else {
-                o[this.name] = this.value || '';
-            }
-        });
-        return o;
-    };
 
-    function S4() {
-        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
-    };
+    $(function(){
+        var timestamp=new Date().getTime();
+        $("#merOrder").val(timestamp);
+    });
 
-    function getQr() {
-        // var form=document.getElementById("form");
-        // var param={}
-
-        var merOrder = new Date().getTime();
-        $('#merOrder').val(merOrder)
-
-        // param.merchantNo=document.getElementById('merchantNo').value;
-        // param.productName=document.getElementById('productName').value;
-        // param.tradeAmount=document.getElementById('tradeAmount').value;
-        // param.bizType=document.getElementById('bizType').value;
-        // console.info(param)
-        let param = JSON.stringify($('#dataForm').serializeObject());
-        // console.info(param)
-        // $("#jsonData").val(param)
-        // $("#form").submit();
-        $.post("http://47.75.135.105/api/gzScan10", {
-                'jsonData': param,
-                'sign': '89830490'
-            }
-            , function (result) {
-                console.info(result);
-                if (result.respCode == 'success') {
-                    let zhifuForm = $("#zhifuForm");
-                    zhifuForm.attr("action", result.jsonData.codeUrl);
-                    zhifuForm.submit();
-                } else {
-                    alert(result.respMsg);
-                }
-            })
+    function submitForm() {
+        $('#dataForm').submit();
+        setInterval(queryOrder, 1000);
     }
+
+    // $.fn.serializeObject = function () {
+    //     var o = {};
+    //     var a = this.serializeArray();
+    //     $.each(a, function () {
+    //         if (o[this.name] !== undefined) {
+    //             if (!o[this.name].push) {
+    //                 o[this.name] = [o[this.name]];
+    //             }
+    //             o[this.name].push(this.value || '');
+    //         } else {
+    //             o[this.name] = this.value || '';
+    //         }
+    //     });
+    //     return o;
+    // };
+
+    // function getQr() {
+    //     // var form=document.getElementById("form");
+    //     // var param={}
+    //
+    //     var merOrder = new Date().getTime();
+    //     $('#merOrder').val(merOrder)
+    //
+    //     // param.merchantNo=document.getElementById('merchantNo').value;
+    //     // param.productName=document.getElementById('productName').value;
+    //     // param.tradeAmount=document.getElementById('tradeAmount').value;
+    //     // param.bizType=document.getElementById('bizType').value;
+    //     // console.info(param)
+    //     let param = JSON.stringify($('#dataForm').serializeObject());
+    //     // console.info(param)
+    //     // $("#jsonData").val(param)
+    //     // $("#form").submit();
+    //     $.post("http://47.75.135.105/api/gzScan10", {
+    //             'jsonData': param,
+    //             'sign': '89830490'
+    //         }
+    //         , function (result) {
+    //             console.info(result);
+    //             if (result.respCode == 'success') {
+    //                 let zhifuForm = $("#zhifuForm");
+    //                 zhifuForm.attr("action", result.jsonData.codeUrl);
+    //                 zhifuForm.submit();
+    //             } else {
+    //                 alert(result.respMsg);
+    //             }
+    //         })
+    // }
 </script>
 </body>
 </html>

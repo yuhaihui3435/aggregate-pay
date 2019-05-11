@@ -138,7 +138,8 @@ public class APUtil {
        // System.out.printf(""+getRate("10004401"));
 //        System.out.printf(""+getZs("10004511"));
         System.out.println(getUUID());
-
+        System.out.println(getRate("2000292"));
+        System.out.println(new BigDecimal("20").multiply(getRate("2000292")).setScale(2,BigDecimal.ROUND_HALF_UP));
 //        MailUtil.send("125227112@qq.com","你好萧霆峰","这事一段完事",false);
 
 //        System.out.println(RandomUtil.randomInt(10));

@@ -11,10 +11,7 @@ import com.xtf.aggregatepay.client.MerchantClient;
 import com.xtf.aggregatepay.core.BaseService;
 import com.xtf.aggregatepay.core.LogicException;
 import com.xtf.aggregatepay.dao.MerInfoDao;
-import com.xtf.aggregatepay.entity.ChannelInfo;
-import com.xtf.aggregatepay.entity.DictItem;
-import com.xtf.aggregatepay.entity.MerBankInfo;
-import com.xtf.aggregatepay.entity.MerInfo;
+import com.xtf.aggregatepay.entity.*;
 import com.xtf.aggregatepay.util.APUtil;
 import com.xtf.aggregatepay.util.EhcacheUtil;
 import com.xtf.aggregatepay.util.Sha256;
@@ -27,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Struct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +42,8 @@ public class MerInfoService extends BaseService<MerInfo> {
     private MerBankInfoService merBankInfoService;
     @Autowired
     private MerPicService merPicService;
+    @Autowired
+    private ClientInfoService clientInfoService;
     @Autowired
     private MerInfoDao merInfoDao;
 
@@ -116,7 +116,7 @@ public class MerInfoService extends BaseService<MerInfo> {
         if(!picMap.containsKey(Consts.PicType.BANKCARD.getStr()))throw new LogicException("新增商户信息失败，原因：缺少身份证背面照片");
         if(!picMap.containsKey(Consts.PicType.MAINPHOTO.getStr()))throw new LogicException("新增商户信息失败，原因：缺少店铺门头照照片");
 
-        if(!merInfo.getLegalPerson().equals(merBankInfo.getAccName())){
+        if(merInfo.getSettleWay().equals(Consts.SETTLEWAY.Ts.name())&&!merInfo.getLegalPerson().equals(merBankInfo.getAccName())){
             if(!picMap.containsKey(Consts.PicType.POWER.getStr()))throw new LogicException("新增商户信息失败，原因：缺少非结算法人授权书照片");
         }
 
@@ -147,6 +147,7 @@ public class MerInfoService extends BaseService<MerInfo> {
         param.put("merImg",JSON.toJSONString(picMap).replaceAll("\"","\\\""));
         param.put("rateCode",merInfo.getRateCode());
         param.put("settleWay", merInfo.getSettleWay());
+        param.put("incomeType","normal");
         Map<String,String> product=new HashMap<>();
         product.put("scan","ALIPAY,WECHATPAY");
         param.put("product",JSON.toJSONString(product).replaceAll("\"","\\\""));
@@ -233,7 +234,7 @@ public class MerInfoService extends BaseService<MerInfo> {
         return ret;
     }
 
-    @Scheduled(cron = "* 0/5 * * * ?")
+    @Scheduled(cron = "0 0/10 * * * ?")
     public void syncMerStatus(){
         //log.info("执行商户状态自动同步任务");
         List<MerInfo> merInfos=sqlManager.lambdaQuery(MerInfo.class).andEq(MerInfo::getDataStatus,Consts.STATUS.NORMAL.getVal()).orEq(MerInfo::getStatus,Consts.MER_STATUS.DDSH.name()).orEq(MerInfo::getStatus, Consts.MER_STATUS.SHZ.name()).select();
@@ -241,5 +242,18 @@ public class MerInfoService extends BaseService<MerInfo> {
         merInfos.stream().forEach(merInfo -> {
             queryMerInfoStatus(merInfo.getMercNum());
         });
+    }
+
+    /**
+     * 检查客户状态
+     * @param clientCode
+     */
+    public void checkClient(String clientCode){
+        if(clientCode!=null&&StrUtil.isNotBlank(clientCode)){
+            ClientInfo clientInfo=clientInfoService.tplOne(ClientInfo.builder().clientCode(clientCode).build());
+            if(clientInfo.getStatus().equals(Consts.STATUS.STOP.getVal())){
+                throw new LogicException("客户被停用");
+            }
+        }
     }
 }
