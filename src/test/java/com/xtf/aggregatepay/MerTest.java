@@ -53,9 +53,10 @@ public class MerTest {
         merInfo.put("linkPhone","17750067474");//联系人手机号
         merInfo.put("mercShortName","小萝莉塔比萨");//商户简称
         merInfo.put("addrDetail","福建省泉州市安溪县福建农业大学安溪茶学院众创空间008号");//详细地址
-        merInfo.put("apCode","123456789");
+        merInfo.put("apCode","100000000");
         merInfo.put("email","12@qq.com");
         merInfo.put("settleWay","Ts");
+        merInfo.put("rateCode","20002902");
         Map<String,String> merBankInfo=new HashMap<>();
         merBankInfo.put("accType","TO_PRIVATE");
         merBankInfo.put("bankCode","BOC");
@@ -67,19 +68,29 @@ public class MerTest {
         merBankInfo.put("idCardValidityPeroid","2024-12-12");
         merBankInfo.put("phone","17750067474");
         merBankInfo.put("bankNameBranch","中国银行福建省泉州市安溪县支行");
-        File file=new File("D:\\apPic\\hjz\\lhx\\CARD.jpg");
-        File file1=new File("D:\\apPic\\hjz\\lhx\\LICENSE.jpg");
-        File file2=new File("D:\\apPic\\hjz\\lhx\\BACKCARD.jpg");
-        File file3=new File("D:\\apPic\\hjz\\lhx\\MAINPHOTO.jpg");
-        File file4=new File("D:\\apPic\\hjz\\lhx\\BANKCARD.jpg");
+        File file=new File("/Users/yuhaihui/gencode/PICPEOBLE.jpg");
+        File file1=new File("/Users/yuhaihui/gencode/LICENSE.jpg");
+        File file2=new File("/Users/yuhaihui/gencode/BACKCARD.jpg");
+        File file5=new File("/Users/yuhaihui/gencode/CARD.jpg");
+        File file3=new File("/Users/yuhaihui/gencode/MAINPHOTO.jpg");
+        File file4=new File("/Users/yuhaihui/gencode/BANKCARD.jpg");
+        File file6=new File("/Users/yuhaihui/gencode/POWER.jpg");
+        File file7=new File("/Users/yuhaihui/gencode/PROTOCOLPHOTO.jpg");
+        File file8=new File("/Users/yuhaihui/gencode/ORGPHOTO.jpg");
+        File file9=new File("/Users/yuhaihui/gencode/CHECKOUTPICTURE.jpg");
+        File file10=new File("/Users/yuhaihui/gencode/ACCOUNTOPENIMAG.jpg");
+        File file11=new File("/Users/yuhaihui/gencode/STOREFRONTPICTURE.jpg");
+        File file12=new File("/Users/yuhaihui/gencode/REDSHIELDPICTURE.jpg");
+        File file13=new File("/Users/yuhaihui/gencode/POWERID.jpg");
+
         Map<String,Object> param=new HashMap<>();
         param.put("merInfo",merInfo);
         param.put("merBankInfo",merBankInfo);
-        String sign=Sha256.sha256ByAgentKey(param,"BDCFDFDFDFSFUIUOIURIUEREWFFD");
+        String sign="89830490";
         String param_str= JSONObject.toJSONString(param);
         System.out.println(sign);
         System.out.println(param_str);
-        HttpResponse httpResponse=HttpRequest.post("http://47.75.135.105/api/addMerInfo").form("files", file,file1,file2,file3,file4).form("jsonData",param_str).form("sign",sign).execute();
+        HttpResponse httpResponse=HttpRequest.post("http://47.75.135.105/api/addMerInfo").form("files", file,file1,file2,file3,file4,file5,file6,file7,file8,file9,file10,file11,file12,file13).form("jsonData",param_str).form("sign",sign).execute();
         log.info(httpResponse.body());
     }
 
